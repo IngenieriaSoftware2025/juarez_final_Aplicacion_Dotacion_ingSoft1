@@ -231,6 +231,11 @@ class ActiveRecord {
         return $atributos;
     }
 
+     public static function getDB(): PDO
+    {
+        return self::$db;
+    }
+
     public function sanitizarAtributos() {
         $atributos = $this->atributos();
         $sanitizado = [];
