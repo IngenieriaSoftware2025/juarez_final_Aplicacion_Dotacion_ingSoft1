@@ -174,3 +174,24 @@ dot_anual_situacion SMALLINT DEFAULT 1,
 FOREIGN KEY (dot_anual_per_id) REFERENCES jjjc_personal_dot(per_id)
 );
 
+
+INSERT INTO jjjc_usuario (usuario_id,usuario_nom1,usuario_nom2,usuario_ape1,usuario_ape2,usuario_tel,usuario_direc,
+usuario_dpi,usuario_correo,usuario_contra,usuario_token,usuario_fecha_creacion,usuario_fecha_contra,
+usuario_fotografia,usuario_situacion) VALUES(1,'Jose','Jose','Juarezq','Juarez',42189352,'Zona 13','3749310030963',
+'josesoteca584@gmail.com','12345678',
+'6853110657a8d','2025-06-18 19:18:30','2025-06-18 00:00:00','storage/fotosUsuarios/3749310030101.jpg',1)
+GO
+
+INSERT INTO jjjc_aplicacion (app_id,app_nombre_largo,app_nombre_mediano,app_nombre_corto,app_fecha_creacion,app_situacion) 
+VALUES(1,'Dotacion','Dotacion','DOTACION','2025-06-18 20:53:31',1)
+GO
+
+
+INSERT INTO jjjc_permiso (permiso_id,permiso_app_id,permiso_nombre,permiso_clave,permiso_desc,permiso_fecha,permiso_situacion) 
+VALUES(1,1,'Admin','ADMIN','Admin','2025-06-18 21:09:47',1)
+GO
+
+INSERT INTO jjjc_permiso (asignacion_id,asignacion_usuario_id,asignacion_app_id,asignacion_permiso_id,asignacion_fecha,asignacion_quitar_fechapermiso,asignacion_usuario_asigno,asignacion_motivo,asignacion_situacion) 
+VALUES(1,1,1,1,'2025-06-18 21:10:11','2025-06-18 21:10:11',1,'Xcdsf',1)
+GO
+

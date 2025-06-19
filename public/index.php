@@ -7,6 +7,7 @@ use Controllers\AppController;
 use Controllers\AsigPermisosController;
 use Controllers\EntregasDotController;
 use Controllers\EstadisticasDotController;
+use Controllers\HistorialActividadesController;
 use Controllers\InventarioDotController;
 use Controllers\LoginController;
 use Controllers\PedidosDotController;
@@ -105,8 +106,6 @@ $router->get('/asigPermisos/permisos', [AsigPermisosController::class,'obtenerPe
 $router->get('/estadisticas', [EstadisticasDotController::class, 'renderizarPagina']);
 $router->get('/estadisticas/buscar', [EstadisticasDotController::class, 'buscarAPI']);
 
-
-
 // RUTAS PARA APLICACIONES
 $router->get('/aplicaciones', [AplicacionController::class,'renderizarPagina']);
 $router->post('/aplicaciones/guardar', [AplicacionController::class,'guardarAPI']);
@@ -121,6 +120,14 @@ $router->post('/permisos/buscar', [PermisosController::class,'buscarAPI']);
 $router->post('/permisos/modificar', [PermisosController::class,'modificarAPI']);
 $router->get('/permisos/eliminar', [PermisosController::class,'eliminarAPI']);
 $router->post('/permisos/aplicaciones', [PermisosController::class,'obtenerAplicacionesAPI']);
+
+// Rutas para el Historial de Actividades
+$router->get('/historial', [HistorialActividadesController::class,'renderizarPagina']);
+$router->get('/historial/buscarAPI', [HistorialActividadesController::class,'buscarAPI']);
+$router->get('/historial/buscarUsuariosAPI', [HistorialActividadesController::class,'buscarUsuariosAPI']);
+$router->get('/historial/buscarAplicacionesAPI', [HistorialActividadesController::class,'buscarAplicacionesAPI']);
+$router->get('/historial/buscarRutasAPI', [HistorialActividadesController::class,'buscarRutasAPI']);
+
 
 // Comprueba y valida las rutas, que existan y les asigna las funciones del Controlador
 $router->comprobarRutas();

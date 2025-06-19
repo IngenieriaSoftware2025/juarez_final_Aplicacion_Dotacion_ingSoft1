@@ -13,6 +13,7 @@ class TallasDotController extends ActiveRecord
 
     public static function renderizarPagina(Router $router)
     {
+        HistorialActividadesController::registrarActividad('/tallasDot', 'Acceso al módulo de tallas de dotación', 1);
         $router->render('tallasDot/index', []);
     }
 
@@ -21,6 +22,8 @@ class TallasDotController extends ActiveRecord
         getHeadersApi();
         
         try {
+            HistorialActividadesController::registrarActividad('/tallasDot/prendas', 'Consulta de prendas para tallas', 1);
+            
             $sql = "SELECT prenda_id, prenda_nombre, prenda_desc 
                     FROM jjjc_dot_img 
                     WHERE prenda_situacion = 1
@@ -35,6 +38,8 @@ class TallasDotController extends ActiveRecord
                 'data' => $prendas
             ]);
         } catch (Exception $e) {
+            HistorialActividadesController::registrarError('/tallasDot/prendas', 'Error al consultar prendas: ' . $e->getMessage(), 1);
+            
             http_response_code(500);
             echo json_encode([
                 'codigo' => 0,
@@ -48,6 +53,8 @@ class TallasDotController extends ActiveRecord
     {
         getHeadersApi();
     
+        HistorialActividadesController::registrarActividad('/tallasDot/guardar', 'Intento de guardar nueva talla de dotación', 1, ['datos_enviados' => $_POST]);
+        
         if (empty($_POST['talla_prenda_id'])) {
             http_response_code(400);
             echo json_encode([
@@ -84,12 +91,16 @@ class TallasDotController extends ActiveRecord
             $resultado = $talla->crear();
 
             if($resultado['resultado'] == 1){
+                HistorialActividadesController::registrarActividad('/tallasDot/guardar', 'Talla de dotación guardada exitosamente con ID: ' . $resultado['id'], 1, ['id_generado' => $resultado['id']]);
+                
                 http_response_code(200);
                 echo json_encode([
                     'codigo' => 1,
                     'mensaje' => 'Talla registrada correctamente',
                 ]);
             } else {
+                HistorialActividadesController::registrarError('/tallasDot/guardar', 'Error al registrar talla de dotación', 1, ['resultado' => $resultado]);
+                
                 http_response_code(500);
                 echo json_encode([
                     'codigo' => 0,
@@ -97,6 +108,8 @@ class TallasDotController extends ActiveRecord
                 ]);
             }
         } catch (Exception $e) {
+            HistorialActividadesController::registrarError('/tallasDot/guardar', 'Excepción al guardar talla: ' . $e->getMessage(), 1, ['datos_enviados' => $_POST]);
+            
             http_response_code(500);
             echo json_encode([
                 'codigo' => 0,
@@ -111,6 +124,8 @@ class TallasDotController extends ActiveRecord
         getHeadersApi();
         
         try {
+            HistorialActividadesController::registrarActividad('/tallasDot/buscar', 'Búsqueda de tallas de dotación', 1);
+            
             $sql = "SELECT t.talla_id, t.talla_nombre, t.talla_desc, 
                            p.prenda_nombre, t.talla_prenda_id
                     FROM jjjc_tallas_dot t
@@ -136,6 +151,8 @@ class TallasDotController extends ActiveRecord
                 ]);
             }
         } catch (Exception $e) {
+            HistorialActividadesController::registrarError('/tallasDot/buscar', 'Error al buscar tallas: ' . $e->getMessage(), 1);
+            
             http_response_code(500);
             echo json_encode([
                 'codigo' => 0,
@@ -148,6 +165,8 @@ class TallasDotController extends ActiveRecord
     public static function modificarAPI()
     {
         getHeadersApi();
+        
+        HistorialActividadesController::registrarActividad('/tallasDot/modificar', 'Intento de modificar talla de dotación', 1, ['datos_enviados' => $_POST]);
         
         if (empty($_POST['talla_id'])) {
             http_response_code(400);
@@ -181,12 +200,16 @@ class TallasDotController extends ActiveRecord
             $resultado = TallasDot::getDB()->exec($sql);
 
             if($resultado >= 0){
+                HistorialActividadesController::registrarActividad('/tallasDot/modificar', 'Talla de dotación modificada exitosamente - ID: ' . $_POST['talla_id'], 1, ['id_modificado' => $_POST['talla_id']]);
+                
                 http_response_code(200);
                 echo json_encode([
                     'codigo' => 1,
                     'mensaje' => 'Talla modificada correctamente',
                 ]);
             } else {
+                HistorialActividadesController::registrarError('/tallasDot/modificar', 'Error al modificar talla de dotación', 1, ['id_talla' => $_POST['talla_id'], 'resultado' => $resultado]);
+                
                 http_response_code(500);
                 echo json_encode([
                     'codigo' => 0,
@@ -194,6 +217,8 @@ class TallasDotController extends ActiveRecord
                 ]);
             }
         } catch (Exception $e) {
+            HistorialActividadesController::registrarError('/tallasDot/modificar', 'Excepción al modificar talla: ' . $e->getMessage(), 1, ['datos_enviados' => $_POST]);
+            
             http_response_code(500);
             echo json_encode([
                 'codigo' => 0,
@@ -209,6 +234,8 @@ class TallasDotController extends ActiveRecord
         
         $id = $_GET['id'] ?? null;
         
+        HistorialActividadesController::registrarActividad('/tallasDot/eliminar', 'Intento de eliminar talla de dotación - ID: ' . $id, 1, ['id_a_eliminar' => $id]);
+        
         if (!$id) {
             http_response_code(400);
             echo json_encode([
@@ -223,12 +250,16 @@ class TallasDotController extends ActiveRecord
             $resultado = TallasDot::getDB()->exec($sql);
             
             if($resultado > 0){
+                HistorialActividadesController::registrarActividad('/tallasDot/eliminar', 'Talla de dotación eliminada exitosamente - ID: ' . $id, 1, ['id_eliminado' => $id]);
+                
                 http_response_code(200);
                 echo json_encode([
                     'codigo' => 1,
                     'mensaje' => 'Talla eliminada correctamente',
                 ]);
             } else {
+                HistorialActividadesController::registrarError('/tallasDot/eliminar', 'No se pudo eliminar la talla - ID: ' . $id, 1, ['id_talla' => $id, 'resultado' => $resultado]);
+                
                 http_response_code(400);
                 echo json_encode([
                     'codigo' => 0,
@@ -236,6 +267,8 @@ class TallasDotController extends ActiveRecord
                 ]);
             }
         } catch (Exception $e) {
+            HistorialActividadesController::registrarError('/tallasDot/eliminar', 'Excepción al eliminar talla: ' . $e->getMessage(), 1, ['id_talla' => $id]);
+            
             http_response_code(500);
             echo json_encode([
                 'codigo' => 0,

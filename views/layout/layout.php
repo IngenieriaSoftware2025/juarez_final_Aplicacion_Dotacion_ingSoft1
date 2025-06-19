@@ -476,6 +476,10 @@
                         <i class="bi bi-person-check"></i>
                         Asignar Permisos
                     </a>
+                    <a href="/juarez_final_Aplicacion_Dotacion_ingSoft1/historial" class="enlace-submenu">
+                        <i class="bi bi-clock-history"></i>
+                        Historial de Actividades
+                    </a>
                 </div>
             </div>
         </nav>
@@ -499,14 +503,6 @@
                     <i class="bi bi-chevron-down"></i>
                 </button>
                 <div class="menu-usuario" id="menuUsuario">
-                    <a href="/juarez_final_Aplicacion_Dotacion_ingSoft1/perfil" class="item-usuario">
-                        <i class="bi bi-person"></i>
-                        Mi Perfil
-                    </a>
-                    <a href="/juarez_final_Aplicacion_Dotacion_ingSoft1/configuracion" class="item-usuario">
-                        <i class="bi bi-gear"></i>
-                        Configuración
-                    </a>
                     <div style="height: 1px; background: #e2e8f0; margin: 0.5rem 0;"></div>
                     <a href="/juarez_final_Aplicacion_Dotacion_ingSoft1/login" class="item-usuario">
                         <i class="bi bi-box-arrow-left"></i>

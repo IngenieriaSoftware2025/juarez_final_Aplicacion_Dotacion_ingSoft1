@@ -32,11 +32,9 @@
         <!-- HEADER -->
         <div class="text-center mb-5">
             <h1 class="text-primary">
-                <i class="bi bi-graph-up me-3"></i>Estadísticas de Dotación
+                <i class="bi bi-graph-up me-3"></i>Estadísticas
             </h1>
-            <h2 class="text-secondary">Subteniente de Infantería</h2>
-            <h3 class="text-secondary">José de Jesús Juárez Castellanos</h3>
-            <p class="lead text-muted">Dashboard de control de dotaciones militares</p>
+            <h2 class="text-secondary">Bienvenido a las Estadisticas</h2>
         </div>
 
         <div class="row justify-content-center mb-4">

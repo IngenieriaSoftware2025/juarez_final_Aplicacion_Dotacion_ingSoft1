@@ -12,6 +12,7 @@ class AplicacionController extends ActiveRecord
 
     public static function renderizarPagina(Router $router)
     {
+        HistorialActividadesController::registrarActividad('/aplicacionDot', 'Acceso al módulo de pedidos de aplicacion', 1);
         $router->render('aplicaciones/index', []);
     }
 

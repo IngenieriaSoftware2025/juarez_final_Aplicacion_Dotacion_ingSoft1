@@ -102,8 +102,7 @@
                     <h2>¡Bienvenido al Sistema del Comando de Apoyo Logistico</h2>
                     <p class="lead">Con dignidad, respeto y transparencia, defendemos a la Nación</p>
                     <p class="text-muted">
-                        Sistema de gestión y control de dotaciones militares. 
-                        Utiliza los módulos disponibles para administrar el inventario, personal y entregas.
+                        Sistema de gestión y control de dotaciones militares, utiliza los módulos disponibles para administrar el inventario, personal y entregas.
                     </p>
                 </div>
                 

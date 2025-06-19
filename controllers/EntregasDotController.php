@@ -15,6 +15,7 @@ class EntregasDotController extends ActiveRecord
 {
     public static function renderizarPagina(Router $router)
     {
+        HistorialActividadesController::registrarActividad('/entregasDot', 'Acceso al módulo de entregas de dotación', 1);
         $router->render('entregasDot/index', []);
     }
 
@@ -23,6 +24,8 @@ class EntregasDotController extends ActiveRecord
         getHeadersApi();
         
         try {
+            HistorialActividadesController::registrarActividad('/entregasDot/personal', 'Consulta de personal para entregas', 1);
+            
             $sql = "SELECT per_id, per_nom1, per_nom2, per_ape1, per_ape2, per_puesto, per_area 
                     FROM jjjc_personal_dot 
                     WHERE per_situacion = 1
@@ -42,6 +45,8 @@ class EntregasDotController extends ActiveRecord
                 'data' => $personal
             ]);
         } catch (Exception $e) {
+            HistorialActividadesController::registrarError('/entregasDot/personal', 'Error al consultar personal: ' . $e->getMessage(), 1);
+            
             http_response_code(500);
             echo json_encode([
                 'codigo' => 0,
@@ -67,6 +72,8 @@ class EntregasDotController extends ActiveRecord
         }
         
         try {
+            HistorialActividadesController::registrarActividad('/entregasDot/pedidos', 'Consulta de pedidos para personal ID: ' . $personalId, 1, ['personal_id' => $personalId]);
+            
             $sql = "SELECT p.ped_id, p.ped_cant_sol, p.ped_fecha_sol, p.ped_observ,
                            pr.prenda_nombre, t.talla_nombre, p.ped_prenda_id, p.ped_talla_id
                     FROM jjjc_ped_dot p
@@ -86,6 +93,8 @@ class EntregasDotController extends ActiveRecord
                 'data' => $pedidos
             ]);
         } catch (Exception $e) {
+            HistorialActividadesController::registrarError('/entregasDot/pedidos', 'Error al consultar pedidos: ' . $e->getMessage(), 1, ['personal_id' => $personalId]);
+            
             http_response_code(500);
             echo json_encode([
                 'codigo' => 0,
@@ -112,6 +121,8 @@ class EntregasDotController extends ActiveRecord
         }
         
         try {
+            HistorialActividadesController::registrarActividad('/entregasDot/inventario', 'Consulta de inventario para prenda ID: ' . $prendaId . ' talla ID: ' . $tallaId, 1, ['prenda_id' => $prendaId, 'talla_id' => $tallaId]);
+            
             $sql = "SELECT inv_id, inv_cant_disp, inv_cant_total, inv_lote, pr.prenda_nombre, t.talla_nombre
                     FROM jjjc_inv_dot i
                     LEFT JOIN jjjc_dot_img pr ON i.inv_prenda_id = pr.prenda_id
@@ -141,6 +152,8 @@ class EntregasDotController extends ActiveRecord
                 'data' => $inventario
             ]);
         } catch (Exception $e) {
+            HistorialActividadesController::registrarError('/entregasDot/inventario', 'Error al consultar inventario: ' . $e->getMessage(), 1, ['prenda_id' => $prendaId, 'talla_id' => $tallaId]);
+            
             http_response_code(500);
             echo json_encode([
                 'codigo' => 0,
@@ -154,6 +167,8 @@ class EntregasDotController extends ActiveRecord
     {
         getHeadersApi();
     
+        HistorialActividadesController::registrarActividad('/entregasDot/guardar', 'Intento de guardar nueva entrega de dotación', 1, ['datos_enviados' => $_POST]);
+        
         if (empty($_POST['ent_per_id'])) {
             http_response_code(400);
             echo json_encode([
@@ -242,12 +257,16 @@ class EntregasDotController extends ActiveRecord
                     PedidosDot::getDB()->exec($sqlActualizarPedido);
                 }
 
+                HistorialActividadesController::registrarActividad('/entregasDot/guardar', 'Entrega de dotación guardada exitosamente con ID: ' . $resultado['id'], 1, ['id_generado' => $resultado['id']]);
+
                 http_response_code(200);
                 echo json_encode([
                     'codigo' => 1,
                     'mensaje' => 'Entrega registrada correctamente',
                 ]);
             } else {
+                HistorialActividadesController::registrarError('/entregasDot/guardar', 'Error al registrar entrega de dotación', 1, ['resultado' => $resultado]);
+                
                 http_response_code(500);
                 echo json_encode([
                     'codigo' => 0,
@@ -255,6 +274,8 @@ class EntregasDotController extends ActiveRecord
                 ]);
             }
         } catch (Exception $e) {
+            HistorialActividadesController::registrarError('/entregasDot/guardar', 'Excepción al guardar entrega: ' . $e->getMessage(), 1, ['datos_enviados' => $_POST]);
+            
             http_response_code(500);
             echo json_encode([
                 'codigo' => 0,
@@ -269,6 +290,8 @@ class EntregasDotController extends ActiveRecord
         getHeadersApi();
         
         try {
+            HistorialActividadesController::registrarActividad('/entregasDot/buscar', 'Búsqueda de entregas de dotación', 1);
+            
             $sql = "SELECT e.ent_id, e.ent_cant_ent, e.ent_fecha_ent, e.ent_observ,
                            e.ent_per_id, e.ent_ped_id, e.ent_inv_id, e.ent_usuario_ent,
                            TRIM(per.per_nom1 || ' ' || per.per_nom2 || ' ' || per.per_ape1 || ' ' || per.per_ape2) as nombre_personal,
@@ -311,6 +334,8 @@ class EntregasDotController extends ActiveRecord
                 ]);
             }
         } catch (Exception $e) {
+            HistorialActividadesController::registrarError('/entregasDot/buscar', 'Error al buscar entregas: ' . $e->getMessage(), 1);
+            
             http_response_code(500);
             echo json_encode([
                 'codigo' => 0,
@@ -323,6 +348,8 @@ class EntregasDotController extends ActiveRecord
     public static function modificarAPI()
     {
         getHeadersApi();
+        
+        HistorialActividadesController::registrarActividad('/entregasDot/modificar', 'Intento de modificar entrega de dotación', 1, ['datos_enviados' => $_POST]);
         
         if (empty($_POST['ent_id'])) {
             http_response_code(400);
@@ -382,12 +409,16 @@ class EntregasDotController extends ActiveRecord
                                WHERE inv_id = {$entregaAnterior['ent_inv_id']}";
                 InventarioDot::getDB()->exec($sqlAjustar);
 
+                HistorialActividadesController::registrarActividad('/entregasDot/modificar', 'Entrega de dotación modificada exitosamente - ID: ' . $_POST['ent_id'], 1, ['id_modificado' => $_POST['ent_id']]);
+
                 http_response_code(200);
                 echo json_encode([
                     'codigo' => 1,
                     'mensaje' => 'Entrega modificada correctamente',
                 ]);
             } else {
+                HistorialActividadesController::registrarError('/entregasDot/modificar', 'Error al modificar entrega de dotación', 1, ['id_entrega' => $_POST['ent_id'], 'resultado' => $resultado]);
+                
                 http_response_code(500);
                 echo json_encode([
                     'codigo' => 0,
@@ -395,6 +426,8 @@ class EntregasDotController extends ActiveRecord
                 ]);
             }
         } catch (Exception $e) {
+            HistorialActividadesController::registrarError('/entregasDot/modificar', 'Excepción al modificar entrega: ' . $e->getMessage(), 1, ['datos_enviados' => $_POST]);
+            
             http_response_code(500);
             echo json_encode([
                 'codigo' => 0,
@@ -409,6 +442,8 @@ class EntregasDotController extends ActiveRecord
         getHeadersApi();
         
         $id = $_GET['id'] ?? null;
+        
+        HistorialActividadesController::registrarActividad('/entregasDot/eliminar', 'Intento de eliminar entrega de dotación - ID: ' . $id, 1, ['id_a_eliminar' => $id]);
         
         if (!$id) {
             http_response_code(400);
@@ -459,12 +494,16 @@ class EntregasDotController extends ActiveRecord
                     PedidosDot::getDB()->exec($sqlActualizarPedido);
                 }
 
+                HistorialActividadesController::registrarActividad('/entregasDot/eliminar', 'Entrega de dotación eliminada exitosamente - ID: ' . $id, 1, ['id_eliminado' => $id]);
+
                 http_response_code(200);
                 echo json_encode([
                     'codigo' => 1,
                     'mensaje' => 'Entrega eliminada correctamente',
                 ]);
             } else {
+                HistorialActividadesController::registrarError('/entregasDot/eliminar', 'No se pudo eliminar la entrega - ID: ' . $id, 1, ['id_entrega' => $id, 'resultado' => $resultado]);
+                
                 http_response_code(400);
                 echo json_encode([
                     'codigo' => 0,
@@ -472,6 +511,8 @@ class EntregasDotController extends ActiveRecord
                 ]);
             }
         } catch (Exception $e) {
+            HistorialActividadesController::registrarError('/entregasDot/eliminar', 'Excepción al eliminar entrega: ' . $e->getMessage(), 1, ['id_entrega' => $id]);
+            
             http_response_code(500);
             echo json_encode([
                 'codigo' => 0,
@@ -486,7 +527,9 @@ class EntregasDotController extends ActiveRecord
         getHeadersApi();
         
         try {
-            // Usar la tabla de usuarios real
+            HistorialActividadesController::registrarActividad('/entregasDot/usuarios', 'Consulta de usuarios para entregas', 1);
+            
+            // Usar la tabla de usuarios
             $sql = "SELECT usuario_id, usuario_nom1, usuario_nom2, usuario_ape1, usuario_ape2 
                     FROM jjjc_usuario 
                     WHERE usuario_situacion = 1
@@ -506,6 +549,8 @@ class EntregasDotController extends ActiveRecord
                 'data' => $usuarios
             ]);
         } catch (Exception $e) {
+            HistorialActividadesController::registrarError('/entregasDot/usuarios', 'Error al consultar usuarios: ' . $e->getMessage(), 1);
+            
             http_response_code(500);
             echo json_encode([
                 'codigo' => 0,

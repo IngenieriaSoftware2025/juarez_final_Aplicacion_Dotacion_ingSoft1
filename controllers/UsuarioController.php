@@ -12,6 +12,7 @@ class UsuarioController extends ActiveRecord
 
     public static function renderizarPagina(Router $router)
     {
+        HistorialActividadesController::registrarActividad('/usuario', 'Acceso al módulo de usuarios del sistema', 1);
         $router->render('usuario/index', []);
     }
 
@@ -19,6 +20,8 @@ class UsuarioController extends ActiveRecord
     {
         getHeadersApi();
     
+        HistorialActividadesController::registrarActividad('/usuario/guardar', 'Intento de guardar nuevo usuario del sistema', 1, ['datos_enviados' => array_merge($_POST, ['archivo_subido' => isset($_FILES['usuario_fotografia']) ? $_FILES['usuario_fotografia']['name'] : 'No'])]);
+        
         $_POST['usuario_nom1'] = ucwords(strtolower(trim(htmlspecialchars($_POST['usuario_nom1']))));
         
         $cantidad_nombre = strlen($_POST['usuario_nom1']);
@@ -182,37 +185,59 @@ class UsuarioController extends ActiveRecord
             $subido = move_uploaded_file($file['tmp_name'], __DIR__ . "/../../" . $ruta);
             
             if ($subido) {
-                $_POST['usuario_contra'] = password_hash($_POST['usuario_contra'], PASSWORD_DEFAULT);
-                $usuario = new Usuario($_POST);
-                $usuario->usuario_fotografia = $ruta;
-                $resultado = $usuario->crear();
+                try {
+                    $_POST['usuario_contra'] = password_hash($_POST['usuario_contra'], PASSWORD_DEFAULT);
+                    $usuario = new Usuario($_POST);
+                    $usuario->usuario_fotografia = $ruta;
+                    $resultado = $usuario->crear();
 
-                if($resultado['resultado'] == 1){
-                    http_response_code(200);
-                    echo json_encode([
-                        'codigo' => 1,
-                        'mensaje' => 'Usuario registrado correctamente',
-                    ]);
-                    exit;
-                } else {
+                    if($resultado['resultado'] == 1){
+                        HistorialActividadesController::registrarActividad('/usuario/guardar', 'Usuario del sistema guardado exitosamente con ID: ' . $resultado['id'] . ' - DPI: ' . $_POST['usuario_dpi'], 1, ['id_generado' => $resultado['id'], 'dpi' => $_POST['usuario_dpi']]);
+                        
+                        http_response_code(200);
+                        echo json_encode([
+                            'codigo' => 1,
+                            'mensaje' => 'Usuario registrado correctamente',
+                        ]);
+                    } else {
+                        HistorialActividadesController::registrarError('/usuario/guardar', 'Error al registrar usuario del sistema', 1, ['resultado' => $resultado, 'dpi' => $_POST['usuario_dpi']]);
+                        
+                        http_response_code(500);
+                        echo json_encode([
+                            'codigo' => 0,
+                            'mensaje' => 'Error en registrar al usuario',
+                            'datos' => $_POST,
+                            'usuario' => $usuario,
+                        ]);
+                    }
+                } catch (Exception $e) {
+                    HistorialActividadesController::registrarError('/usuario/guardar', 'Excepción al guardar usuario: ' . $e->getMessage(), 1, ['dpi' => $_POST['usuario_dpi']]);
+                    
                     http_response_code(500);
                     echo json_encode([
                         'codigo' => 0,
-                        'mensaje' => 'Error en registrar al usuario',
-                        'datos' => $_POST,
-                        'usuario' => $usuario,
+                        'mensaje' => 'Error: ' . $e->getMessage()
                     ]);
-                    exit;
                 }
-            } 
+            } else {
+                HistorialActividadesController::registrarError('/usuario/guardar', 'Error al subir fotografía del usuario', 1, ['dpi' => $_POST['usuario_dpi'], 'ruta' => $ruta]);
+                
+                http_response_code(500);
+                echo json_encode([
+                    'codigo' => 0,
+                    'mensaje' => 'Error al subir la fotografía',
+                ]);
+            }
         } else {
+            HistorialActividadesController::registrarError('/usuario/guardar', 'Error en la carga de fotografía - Código: ' . $fileError, 1, ['dpi' => $_POST['usuario_dpi'], 'error_code' => $fileError]);
+            
             http_response_code(500);
             echo json_encode([
                 'codigo' => 0,
                 'mensaje' => 'Error en la carga de fotografia',
             ]);
-            exit;
         }
+        exit;
     }
     
     public static function buscarAPI()
@@ -220,6 +245,8 @@ class UsuarioController extends ActiveRecord
         getHeadersApi();
         
         try {
+            HistorialActividadesController::registrarActividad('/usuario/buscar', 'Búsqueda de usuarios del sistema', 1);
+            
             $sql = "SELECT usuario_id, usuario_nom1, usuario_nom2, usuario_ape1, usuario_ape2, 
                            usuario_tel, usuario_direc, usuario_dpi, usuario_correo, usuario_token,
                            usuario_fecha_creacion, usuario_fecha_contra, usuario_fotografia, usuario_situacion 
@@ -255,6 +282,8 @@ class UsuarioController extends ActiveRecord
                 ]);
             }
         } catch (Exception $e) {
+            HistorialActividadesController::registrarError('/usuario/buscar', 'Error al buscar usuarios: ' . $e->getMessage(), 1);
+            
             http_response_code(500);
             echo json_encode([
                 'codigo' => 0,
@@ -267,6 +296,8 @@ class UsuarioController extends ActiveRecord
     public static function mostrarImagen()
     {
         $dpi = $_GET['dpi'] ?? null;
+        
+        HistorialActividadesController::registrarActividad('/usuario/imagen', 'Consulta de imagen de usuario por DPI: ' . $dpi, 1, ['dpi_consultado' => $dpi]);
         
         if (!$dpi) {
             http_response_code(400);
@@ -284,6 +315,8 @@ class UsuarioController extends ActiveRecord
             $rutaArchivo = $directorio . $dpi . '.' . $ext;
             
             if (file_exists($rutaArchivo)) {
+                HistorialActividadesController::registrarActividad('/usuario/imagen', 'Imagen de usuario encontrada y servida - DPI: ' . $dpi, 1, ['archivo_encontrado' => $dpi . '.' . $ext]);
+                
                 switch($ext) {
                     case 'jpg':
                     case 'jpeg':
@@ -301,6 +334,8 @@ class UsuarioController extends ActiveRecord
                 exit;
             }
         }
+        
+        HistorialActividadesController::registrarError('/usuario/imagen', 'Imagen de usuario no encontrada - DPI: ' . $dpi, 1, ['dpi_buscado' => $dpi]);
         
         http_response_code(404);
         echo json_encode([

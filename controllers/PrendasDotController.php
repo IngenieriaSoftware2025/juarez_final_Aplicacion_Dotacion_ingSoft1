@@ -12,6 +12,7 @@ class PrendasDotController extends ActiveRecord
 
     public static function renderizarPagina(Router $router)
     {
+        HistorialActividadesController::registrarActividad('/prendasDot', 'Acceso al módulo de prendas de dotación', 1);
         $router->render('prendasDot/index', []);
     }
 
@@ -19,6 +20,8 @@ class PrendasDotController extends ActiveRecord
     {
         getHeadersApi();
     
+        HistorialActividadesController::registrarActividad('/prendasDot/guardar', 'Intento de guardar nueva prenda de dotación', 1, ['datos_enviados' => $_POST]);
+        
         $_POST['prenda_nombre'] = ucwords(strtolower(trim(htmlspecialchars($_POST['prenda_nombre']))));
         
         $cantidad_nombre = strlen($_POST['prenda_nombre']);
@@ -58,12 +61,16 @@ class PrendasDotController extends ActiveRecord
             $resultado = $prenda->crear();
 
             if($resultado['resultado'] == 1){
+                HistorialActividadesController::registrarActividad('/prendasDot/guardar', 'Prenda de dotación guardada exitosamente con ID: ' . $resultado['id'], 1, ['id_generado' => $resultado['id']]);
+                
                 http_response_code(200);
                 echo json_encode([
                     'codigo' => 1,
                     'mensaje' => 'Prenda registrada correctamente',
                 ]);
             } else {
+                HistorialActividadesController::registrarError('/prendasDot/guardar', 'Error al registrar prenda de dotación', 1, ['resultado' => $resultado]);
+                
                 http_response_code(500);
                 echo json_encode([
                     'codigo' => 0,
@@ -71,6 +78,8 @@ class PrendasDotController extends ActiveRecord
                 ]);
             }
         } catch (Exception $e) {
+            HistorialActividadesController::registrarError('/prendasDot/guardar', 'Excepción al guardar prenda: ' . $e->getMessage(), 1, ['datos_enviados' => $_POST]);
+            
             http_response_code(500);
             echo json_encode([
                 'codigo' => 0,
@@ -85,6 +94,8 @@ class PrendasDotController extends ActiveRecord
         getHeadersApi();
         
         try {
+            HistorialActividadesController::registrarActividad('/prendasDot/buscar', 'Búsqueda de prendas de dotación', 1);
+            
             $sql = "SELECT prenda_id, prenda_nombre, prenda_desc, prenda_fecha_crea, prenda_situacion 
                     FROM jjjc_dot_img 
                     WHERE prenda_situacion = 1";
@@ -115,6 +126,8 @@ class PrendasDotController extends ActiveRecord
                 ]);
             }
         } catch (Exception $e) {
+            HistorialActividadesController::registrarError('/prendasDot/buscar', 'Error al buscar prendas: ' . $e->getMessage(), 1);
+            
             http_response_code(500);
             echo json_encode([
                 'codigo' => 0,
@@ -127,6 +140,8 @@ class PrendasDotController extends ActiveRecord
     public static function modificarAPI()
     {
         getHeadersApi();
+        
+        HistorialActividadesController::registrarActividad('/prendasDot/modificar', 'Intento de modificar prenda de dotación', 1, ['datos_enviados' => $_POST]);
         
         if (empty($_POST['prenda_id'])) {
             http_response_code(400);
@@ -159,12 +174,16 @@ class PrendasDotController extends ActiveRecord
             $resultado = PrendasDot::getDB()->exec($sql);
 
             if($resultado >= 0){
+                HistorialActividadesController::registrarActividad('/prendasDot/modificar', 'Prenda de dotación modificada exitosamente - ID: ' . $_POST['prenda_id'], 1, ['id_modificado' => $_POST['prenda_id']]);
+                
                 http_response_code(200);
                 echo json_encode([
                     'codigo' => 1,
                     'mensaje' => 'Prenda modificada correctamente',
                 ]);
             } else {
+                HistorialActividadesController::registrarError('/prendasDot/modificar', 'Error al modificar prenda de dotación', 1, ['id_prenda' => $_POST['prenda_id'], 'resultado' => $resultado]);
+                
                 http_response_code(500);
                 echo json_encode([
                     'codigo' => 0,
@@ -172,6 +191,8 @@ class PrendasDotController extends ActiveRecord
                 ]);
             }
         } catch (Exception $e) {
+            HistorialActividadesController::registrarError('/prendasDot/modificar', 'Excepción al modificar prenda: ' . $e->getMessage(), 1, ['datos_enviados' => $_POST]);
+            
             http_response_code(500);
             echo json_encode([
                 'codigo' => 0,
@@ -187,6 +208,8 @@ class PrendasDotController extends ActiveRecord
         
         $id = $_GET['id'] ?? null;
         
+        HistorialActividadesController::registrarActividad('/prendasDot/eliminar', 'Intento de eliminar prenda de dotación - ID: ' . $id, 1, ['id_a_eliminar' => $id]);
+        
         if (!$id) {
             http_response_code(400);
             echo json_encode([
@@ -201,12 +224,16 @@ class PrendasDotController extends ActiveRecord
             $resultado = PrendasDot::getDB()->exec($sql);
             
             if($resultado > 0){
+                HistorialActividadesController::registrarActividad('/prendasDot/eliminar', 'Prenda de dotación eliminada exitosamente - ID: ' . $id, 1, ['id_eliminado' => $id]);
+                
                 http_response_code(200);
                 echo json_encode([
                     'codigo' => 1,
                     'mensaje' => 'Prenda eliminada correctamente',
                 ]);
             } else {
+                HistorialActividadesController::registrarError('/prendasDot/eliminar', 'No se pudo eliminar la prenda - ID: ' . $id, 1, ['id_prenda' => $id, 'resultado' => $resultado]);
+                
                 http_response_code(400);
                 echo json_encode([
                     'codigo' => 0,
@@ -214,6 +241,8 @@ class PrendasDotController extends ActiveRecord
                 ]);
             }
         } catch (Exception $e) {
+            HistorialActividadesController::registrarError('/prendasDot/eliminar', 'Excepción al eliminar prenda: ' . $e->getMessage(), 1, ['id_prenda' => $id]);
+            
             http_response_code(500);
             echo json_encode([
                 'codigo' => 0,

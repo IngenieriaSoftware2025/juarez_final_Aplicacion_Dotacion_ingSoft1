@@ -12,6 +12,7 @@ class PersonalDotController extends ActiveRecord
 
     public static function renderizarPagina(Router $router)
     {
+        HistorialActividadesController::registrarActividad('/personalDot', 'Acceso al módulo de personal de dotación', 1);
         $router->render('personalDot/index', []);
     }
 
@@ -19,6 +20,8 @@ class PersonalDotController extends ActiveRecord
     {
         getHeadersApi();
     
+        HistorialActividadesController::registrarActividad('/personalDot/guardar', 'Intento de guardar nuevo personal de dotación', 1, ['datos_enviados' => $_POST]);
+        
         $_POST['per_nom1'] = ucwords(strtolower(trim(htmlspecialchars($_POST['per_nom1']))));
         
         $cantidad_nombre = strlen($_POST['per_nom1']);
@@ -178,12 +181,16 @@ class PersonalDotController extends ActiveRecord
             $resultado = $personal->crear();
 
             if($resultado['resultado'] == 1){
+                HistorialActividadesController::registrarActividad('/personalDot/guardar', 'Personal de dotación guardado exitosamente con ID: ' . $resultado['id'], 1, ['id_generado' => $resultado['id']]);
+                
                 http_response_code(200);
                 echo json_encode([
                     'codigo' => 1,
                     'mensaje' => 'Personal registrado correctamente',
                 ]);
             } else {
+                HistorialActividadesController::registrarError('/personalDot/guardar', 'Error al registrar personal de dotación', 1, ['resultado' => $resultado]);
+                
                 http_response_code(500);
                 echo json_encode([
                     'codigo' => 0,
@@ -191,6 +198,8 @@ class PersonalDotController extends ActiveRecord
                 ]);
             }
         } catch (Exception $e) {
+            HistorialActividadesController::registrarError('/personalDot/guardar', 'Excepción al guardar personal: ' . $e->getMessage(), 1, ['datos_enviados' => $_POST]);
+            
             http_response_code(500);
             echo json_encode([
                 'codigo' => 0,
@@ -205,6 +214,8 @@ class PersonalDotController extends ActiveRecord
         getHeadersApi();
         
         try {
+            HistorialActividadesController::registrarActividad('/personalDot/buscar', 'Búsqueda de personal de dotación', 1);
+            
             $sql = "SELECT per_id, per_nom1, per_nom2, per_ape1, per_ape2, 
                            per_tel, per_direc, per_dpi, per_correo, per_puesto, per_area,
                            per_fecha_ing, per_situacion 
@@ -237,6 +248,8 @@ class PersonalDotController extends ActiveRecord
                 ]);
             }
         } catch (Exception $e) {
+            HistorialActividadesController::registrarError('/personalDot/buscar', 'Error al buscar personal: ' . $e->getMessage(), 1);
+            
             http_response_code(500);
             echo json_encode([
                 'codigo' => 0,
@@ -249,6 +262,8 @@ class PersonalDotController extends ActiveRecord
     public static function modificarAPI()
     {
         getHeadersApi();
+        
+        HistorialActividadesController::registrarActividad('/personalDot/modificar', 'Intento de modificar personal de dotación', 1, ['datos_enviados' => $_POST]);
         
         if (empty($_POST['per_id'])) {
             http_response_code(400);
@@ -285,12 +300,16 @@ class PersonalDotController extends ActiveRecord
             $resultado = PersonalDot::getDB()->exec($sql);
 
             if($resultado >= 0){
+                HistorialActividadesController::registrarActividad('/personalDot/modificar', 'Personal de dotación modificado exitosamente - ID: ' . $_POST['per_id'], 1, ['id_modificado' => $_POST['per_id']]);
+                
                 http_response_code(200);
                 echo json_encode([
                     'codigo' => 1,
                     'mensaje' => 'Personal modificado correctamente',
                 ]);
             } else {
+                HistorialActividadesController::registrarError('/personalDot/modificar', 'Error al modificar personal de dotación', 1, ['id_personal' => $_POST['per_id'], 'resultado' => $resultado]);
+                
                 http_response_code(500);
                 echo json_encode([
                     'codigo' => 0,
@@ -298,6 +317,8 @@ class PersonalDotController extends ActiveRecord
                 ]);
             }
         } catch (Exception $e) {
+            HistorialActividadesController::registrarError('/personalDot/modificar', 'Excepción al modificar personal: ' . $e->getMessage(), 1, ['datos_enviados' => $_POST]);
+            
             http_response_code(500);
             echo json_encode([
                 'codigo' => 0,
@@ -313,6 +334,8 @@ class PersonalDotController extends ActiveRecord
         
         $id = $_GET['id'] ?? null;
         
+        HistorialActividadesController::registrarActividad('/personalDot/eliminar', 'Intento de eliminar personal de dotación - ID: ' . $id, 1, ['id_a_eliminar' => $id]);
+        
         if (!$id) {
             http_response_code(400);
             echo json_encode([
@@ -327,12 +350,16 @@ class PersonalDotController extends ActiveRecord
             $resultado = PersonalDot::getDB()->exec($sql);
             
             if($resultado > 0){
+                HistorialActividadesController::registrarActividad('/personalDot/eliminar', 'Personal de dotación eliminado exitosamente - ID: ' . $id, 1, ['id_eliminado' => $id]);
+                
                 http_response_code(200);
                 echo json_encode([
                     'codigo' => 1,
                     'mensaje' => 'Personal eliminado correctamente',
                 ]);
             } else {
+                HistorialActividadesController::registrarError('/personalDot/eliminar', 'No se pudo eliminar el personal - ID: ' . $id, 1, ['id_personal' => $id, 'resultado' => $resultado]);
+                
                 http_response_code(400);
                 echo json_encode([
                     'codigo' => 0,
@@ -340,6 +367,8 @@ class PersonalDotController extends ActiveRecord
                 ]);
             }
         } catch (Exception $e) {
+            HistorialActividadesController::registrarError('/personalDot/eliminar', 'Excepción al eliminar personal: ' . $e->getMessage(), 1, ['id_personal' => $id]);
+            
             http_response_code(500);
             echo json_encode([
                 'codigo' => 0,

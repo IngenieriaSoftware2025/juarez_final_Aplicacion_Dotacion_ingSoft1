@@ -14,6 +14,7 @@ class InventarioDotController extends ActiveRecord
 
     public static function renderizarPagina(Router $router)
     {
+        HistorialActividadesController::registrarActividad('/inventarioDot', 'Acceso al módulo de inventario de dotación', 1);
         $router->render('inventarioDot/index', []);
     }
 
@@ -22,6 +23,8 @@ class InventarioDotController extends ActiveRecord
         getHeadersApi();
         
         try {
+            HistorialActividadesController::registrarActividad('/inventarioDot/prendas', 'Consulta de prendas para inventario', 1);
+            
             $sql = "SELECT prenda_id, prenda_nombre, prenda_desc 
                     FROM jjjc_dot_img 
                     WHERE prenda_situacion = 1
@@ -36,6 +39,8 @@ class InventarioDotController extends ActiveRecord
                 'data' => $prendas
             ]);
         } catch (Exception $e) {
+            HistorialActividadesController::registrarError('/inventarioDot/prendas', 'Error al consultar prendas: ' . $e->getMessage(), 1);
+            
             http_response_code(500);
             echo json_encode([
                 'codigo' => 0,
@@ -61,6 +66,8 @@ class InventarioDotController extends ActiveRecord
         }
         
         try {
+            HistorialActividadesController::registrarActividad('/inventarioDot/tallas', 'Consulta de tallas para prenda ID: ' . $prendaId, 1, ['prenda_id' => $prendaId]);
+            
             $sql = "SELECT talla_id, talla_nombre, talla_desc 
                     FROM jjjc_tallas_dot 
                     WHERE talla_prenda_id = $prendaId AND talla_situacion = 1
@@ -75,6 +82,8 @@ class InventarioDotController extends ActiveRecord
                 'data' => $tallas
             ]);
         } catch (Exception $e) {
+            HistorialActividadesController::registrarError('/inventarioDot/tallas', 'Error al consultar tallas: ' . $e->getMessage(), 1, ['prenda_id' => $prendaId]);
+            
             http_response_code(500);
             echo json_encode([
                 'codigo' => 0,
@@ -88,6 +97,8 @@ class InventarioDotController extends ActiveRecord
     {
         getHeadersApi();
     
+        HistorialActividadesController::registrarActividad('/inventarioDot/guardar', 'Intento de guardar nuevo inventario de dotación', 1, ['datos_enviados' => $_POST]);
+        
         if (empty($_POST['inv_prenda_id'])) {
             http_response_code(400);
             echo json_encode([
@@ -135,12 +146,16 @@ class InventarioDotController extends ActiveRecord
             $resultado = $inventario->crear();
 
             if($resultado['resultado'] == 1){
+                HistorialActividadesController::registrarActividad('/inventarioDot/guardar', 'Inventario de dotación guardado exitosamente con ID: ' . $resultado['id'], 1, ['id_generado' => $resultado['id']]);
+                
                 http_response_code(200);
                 echo json_encode([
                     'codigo' => 1,
                     'mensaje' => 'Inventario registrado correctamente',
                 ]);
             } else {
+                HistorialActividadesController::registrarError('/inventarioDot/guardar', 'Error al registrar inventario de dotación', 1, ['resultado' => $resultado]);
+                
                 http_response_code(500);
                 echo json_encode([
                     'codigo' => 0,
@@ -148,6 +163,8 @@ class InventarioDotController extends ActiveRecord
                 ]);
             }
         } catch (Exception $e) {
+            HistorialActividadesController::registrarError('/inventarioDot/guardar', 'Excepción al guardar inventario: ' . $e->getMessage(), 1, ['datos_enviados' => $_POST]);
+            
             http_response_code(500);
             echo json_encode([
                 'codigo' => 0,
@@ -162,6 +179,8 @@ class InventarioDotController extends ActiveRecord
         getHeadersApi();
         
         try {
+            HistorialActividadesController::registrarActividad('/inventarioDot/buscar', 'Búsqueda de inventarios de dotación', 1);
+            
             $sql = "SELECT i.inv_id, i.inv_cant_disp, i.inv_cant_total, i.inv_fecha_ing, 
                            i.inv_lote, i.inv_observ, i.inv_prenda_id, i.inv_talla_id,
                            p.prenda_nombre, t.talla_nombre
@@ -196,6 +215,8 @@ class InventarioDotController extends ActiveRecord
                 ]);
             }
         } catch (Exception $e) {
+            HistorialActividadesController::registrarError('/inventarioDot/buscar', 'Error al buscar inventarios: ' . $e->getMessage(), 1);
+            
             http_response_code(500);
             echo json_encode([
                 'codigo' => 0,
@@ -208,6 +229,8 @@ class InventarioDotController extends ActiveRecord
     public static function modificarAPI()
     {
         getHeadersApi();
+        
+        HistorialActividadesController::registrarActividad('/inventarioDot/modificar', 'Intento de modificar inventario de dotación', 1, ['datos_enviados' => $_POST]);
         
         if (empty($_POST['inv_id'])) {
             http_response_code(400);
@@ -243,12 +266,16 @@ class InventarioDotController extends ActiveRecord
             $resultado = InventarioDot::getDB()->exec($sql);
 
             if($resultado >= 0){
+                HistorialActividadesController::registrarActividad('/inventarioDot/modificar', 'Inventario de dotación modificado exitosamente - ID: ' . $_POST['inv_id'], 1, ['id_modificado' => $_POST['inv_id']]);
+                
                 http_response_code(200);
                 echo json_encode([
                     'codigo' => 1,
                     'mensaje' => 'Inventario modificado correctamente',
                 ]);
             } else {
+                HistorialActividadesController::registrarError('/inventarioDot/modificar', 'Error al modificar inventario de dotación', 1, ['id_inventario' => $_POST['inv_id'], 'resultado' => $resultado]);
+                
                 http_response_code(500);
                 echo json_encode([
                     'codigo' => 0,
@@ -256,6 +283,8 @@ class InventarioDotController extends ActiveRecord
                 ]);
             }
         } catch (Exception $e) {
+            HistorialActividadesController::registrarError('/inventarioDot/modificar', 'Excepción al modificar inventario: ' . $e->getMessage(), 1, ['datos_enviados' => $_POST]);
+            
             http_response_code(500);
             echo json_encode([
                 'codigo' => 0,
@@ -271,6 +300,8 @@ class InventarioDotController extends ActiveRecord
         
         $id = $_GET['id'] ?? null;
         
+        HistorialActividadesController::registrarActividad('/inventarioDot/eliminar', 'Intento de eliminar inventario de dotación - ID: ' . $id, 1, ['id_a_eliminar' => $id]);
+        
         if (!$id) {
             http_response_code(400);
             echo json_encode([
@@ -285,12 +316,16 @@ class InventarioDotController extends ActiveRecord
             $resultado = InventarioDot::getDB()->exec($sql);
             
             if($resultado > 0){
+                HistorialActividadesController::registrarActividad('/inventarioDot/eliminar', 'Inventario de dotación eliminado exitosamente - ID: ' . $id, 1, ['id_eliminado' => $id]);
+                
                 http_response_code(200);
                 echo json_encode([
                     'codigo' => 1,
                     'mensaje' => 'Inventario eliminado correctamente',
                 ]);
             } else {
+                HistorialActividadesController::registrarError('/inventarioDot/eliminar', 'No se pudo eliminar el inventario - ID: ' . $id, 1, ['id_inventario' => $id, 'resultado' => $resultado]);
+                
                 http_response_code(400);
                 echo json_encode([
                     'codigo' => 0,
@@ -298,6 +333,8 @@ class InventarioDotController extends ActiveRecord
                 ]);
             }
         } catch (Exception $e) {
+            HistorialActividadesController::registrarError('/inventarioDot/eliminar', 'Excepción al eliminar inventario: ' . $e->getMessage(), 1, ['id_inventario' => $id]);
+            
             http_response_code(500);
             echo json_encode([
                 'codigo' => 0,

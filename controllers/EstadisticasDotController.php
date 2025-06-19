@@ -10,6 +10,7 @@ class EstadisticasDotController extends ActiveRecord
 {
     public static function renderizarPagina(Router $router)
     {
+        HistorialActividadesController::registrarActividad('/estadisticas', 'Acceso al módulo de estadísticas de dotación', 1);
         $router->render('estadisticas/index', []);
     }
 
@@ -19,6 +20,8 @@ class EstadisticasDotController extends ActiveRecord
         header('Access-Control-Allow-Origin: *');
         
         try {
+            HistorialActividadesController::registrarActividad('/estadisticas/buscar', 'Consulta de estadísticas de dotación', 1);
+            
             $consultaDotaciones = "SELECT 
                                     pr.prenda_nombre as nombre_prenda, 
                                     SUM(e.ent_cant_ent) as total_entregado
@@ -64,6 +67,8 @@ class EstadisticasDotController extends ActiveRecord
                 $totalStock += (int)$talla['cantidad_disponible'];
             }
 
+            HistorialActividadesController::registrarActividad('/estadisticas/buscar', 'Estadísticas generadas exitosamente - Total dotaciones: ' . $totalDotaciones . ' - Stock disponible: ' . $totalStock, 1, ['totales_generados' => ['total_dotaciones' => $totalDotaciones, 'total_stock' => $totalStock]]);
+
             echo json_encode([
                 'exito' => true,
                 'mensaje' => 'Datos cargados correctamente',
@@ -77,6 +82,8 @@ class EstadisticasDotController extends ActiveRecord
             ]);
             
         } catch (Exception $error) {
+            HistorialActividadesController::registrarError('/estadisticas/buscar', 'Error al generar estadísticas: ' . $error->getMessage(), 1);
+            
             echo json_encode([
                 'exito' => false,
                 'mensaje' => 'Error: ' . $error->getMessage()

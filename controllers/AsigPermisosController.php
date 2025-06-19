@@ -16,12 +16,15 @@ class AsigPermisosController extends ActiveRecord
 
     public static function renderizarPagina(Router $router)
     {
+        HistorialActividadesController::registrarActividad('/asigPermisos', 'Acceso al módulo de asignación de permisos', 1);
         $router->render('asigPermisos/index', []);
     }
 
     public static function guardarAPI()
     {
         getHeadersApi();
+        
+        HistorialActividadesController::registrarActividad('/asigPermisos/guardar', 'Intento de guardar nueva asignación de permisos', 1, ['datos_enviados' => $_POST]);
         
         // Validar usuario
         if (empty($_POST['asignacion_usuario_id'])) {
@@ -88,24 +91,37 @@ class AsigPermisosController extends ActiveRecord
         
         $_POST['asignacion_fecha'] = '';
         
-        $asignacion = new AsigPermiso($_POST);
-        $resultado = $asignacion->crear();
+        try {
+            $asignacion = new AsigPermiso($_POST);
+            $resultado = $asignacion->crear();
 
-        if($resultado['resultado'] == 1){
-            http_response_code(200);
-            echo json_encode([
-                'codigo' => 1,
-                'mensaje' => 'Asignación de permiso registrada correctamente',
-            ]);
-            exit;
-        } else {
+            if($resultado['resultado'] == 1){
+                HistorialActividadesController::registrarActividad('/asigPermisos/guardar', 'Asignación de permisos guardada exitosamente con ID: ' . $resultado['id'], 1, ['id_generado' => $resultado['id']]);
+                
+                http_response_code(200);
+                echo json_encode([
+                    'codigo' => 1,
+                    'mensaje' => 'Asignación de permiso registrada correctamente',
+                ]);
+            } else {
+                HistorialActividadesController::registrarError('/asigPermisos/guardar', 'Error al registrar asignación de permisos', 1, ['resultado' => $resultado]);
+                
+                http_response_code(500);
+                echo json_encode([
+                    'codigo' => 0,
+                    'mensaje' => 'Error al registrar la asignación de permiso',
+                ]);
+            }
+        } catch (Exception $e) {
+            HistorialActividadesController::registrarError('/asigPermisos/guardar', 'Excepción al guardar asignación: ' . $e->getMessage(), 1, ['datos_enviados' => $_POST]);
+            
             http_response_code(500);
             echo json_encode([
                 'codigo' => 0,
-                'mensaje' => 'Error al registrar la asignación de permiso',
+                'mensaje' => 'Error: ' . $e->getMessage()
             ]);
-            exit;
         }
+        exit;
     }
 
     public static function buscarAPI()
@@ -113,6 +129,8 @@ class AsigPermisosController extends ActiveRecord
         getHeadersApi();
         
         try {
+            HistorialActividadesController::registrarActividad('/asigPermisos/buscar', 'Búsqueda de asignaciones de permisos', 1);
+            
             $sql = "SELECT ap.*, 
                            u.usuario_nom1 || ' ' || u.usuario_nom2 || ' ' || u.usuario_ape1 || ' ' || u.usuario_ape2 as usuario_completo,
                            a.app_nombre_corto,
@@ -145,6 +163,8 @@ class AsigPermisosController extends ActiveRecord
                 ]);
             }
         } catch (Exception $e) {
+            HistorialActividadesController::registrarError('/asigPermisos/buscar', 'Error al buscar asignaciones: ' . $e->getMessage(), 1);
+            
             http_response_code(500);
             echo json_encode([
                 'codigo' => 0,
@@ -157,6 +177,8 @@ class AsigPermisosController extends ActiveRecord
     public static function modificarAPI()
     {
         getHeadersApi();
+        
+        HistorialActividadesController::registrarActividad('/asigPermisos/modificar', 'Intento de modificar asignación de permisos', 1, ['datos_enviados' => $_POST]);
         
         if (empty($_POST['asignacion_id'])) {
             http_response_code(400);
@@ -203,12 +225,16 @@ class AsigPermisosController extends ActiveRecord
             $resultado = AsigPermiso::getDB()->exec($sql);
 
             if($resultado >= 0){
+                HistorialActividadesController::registrarActividad('/asigPermisos/modificar', 'Asignación de permisos modificada exitosamente - ID: ' . $_POST['asignacion_id'], 1, ['id_modificado' => $_POST['asignacion_id']]);
+                
                 http_response_code(200);
                 echo json_encode([
                     'codigo' => 1,
                     'mensaje' => 'Asignación modificada correctamente',
                 ]);
             } else {
+                HistorialActividadesController::registrarError('/asigPermisos/modificar', 'Error al modificar asignación de permisos', 1, ['id_asignacion' => $_POST['asignacion_id'], 'resultado' => $resultado]);
+                
                 http_response_code(500);
                 echo json_encode([
                     'codigo' => 0,
@@ -216,6 +242,8 @@ class AsigPermisosController extends ActiveRecord
                 ]);
             }
         } catch (Exception $e) {
+            HistorialActividadesController::registrarError('/asigPermisos/modificar', 'Excepción al modificar asignación: ' . $e->getMessage(), 1, ['datos_enviados' => $_POST]);
+            
             http_response_code(500);
             echo json_encode([
                 'codigo' => 0,
@@ -230,6 +258,8 @@ class AsigPermisosController extends ActiveRecord
         getHeadersApi();
         
         $id = $_GET['id'] ?? null;
+        
+        HistorialActividadesController::registrarActividad('/asigPermisos/eliminar', 'Intento de eliminar asignación de permisos - ID: ' . $id, 1, ['id_a_eliminar' => $id]);
         
         if (!$id) {
             http_response_code(400);
@@ -246,12 +276,16 @@ class AsigPermisosController extends ActiveRecord
             $resultado = AsigPermiso::getDB()->exec($sql);
             
             if($resultado > 0){
+                HistorialActividadesController::registrarActividad('/asigPermisos/eliminar', 'Asignación de permisos eliminada exitosamente - ID: ' . $id, 1, ['id_eliminado' => $id]);
+                
                 http_response_code(200);
                 echo json_encode([
                     'codigo' => 1,
                     'mensaje' => 'Asignación eliminada correctamente (situación cambiada a inactiva)',
                 ]);
             } else {
+                HistorialActividadesController::registrarError('/asigPermisos/eliminar', 'No se pudo eliminar la asignación - ID: ' . $id, 1, ['id_asignacion' => $id, 'resultado' => $resultado]);
+                
                 http_response_code(400);
                 echo json_encode([
                     'codigo' => 0,
@@ -259,6 +293,8 @@ class AsigPermisosController extends ActiveRecord
                 ]);
             }
         } catch (Exception $e) {
+            HistorialActividadesController::registrarError('/asigPermisos/eliminar', 'Excepción al eliminar asignación: ' . $e->getMessage(), 1, ['id_asignacion' => $id]);
+            
             http_response_code(500);
             echo json_encode([
                 'codigo' => 0,
@@ -273,6 +309,8 @@ class AsigPermisosController extends ActiveRecord
         getHeadersApi();
         
         try {
+            HistorialActividadesController::registrarActividad('/asigPermisos/usuarios', 'Consulta de usuarios para asignaciones', 1);
+            
             $usuarios = Usuario::where('usuario_situacion', 1);
             
             http_response_code(200);
@@ -282,6 +320,8 @@ class AsigPermisosController extends ActiveRecord
                 'data' => $usuarios
             ]);
         } catch (Exception $e) {
+            HistorialActividadesController::registrarError('/asigPermisos/usuarios', 'Error al consultar usuarios: ' . $e->getMessage(), 1);
+            
             http_response_code(500);
             echo json_encode([
                 'codigo' => 0,
@@ -296,6 +336,8 @@ class AsigPermisosController extends ActiveRecord
         getHeadersApi();
         
         try {
+            HistorialActividadesController::registrarActividad('/asigPermisos/aplicaciones', 'Consulta de aplicaciones para asignaciones', 1);
+            
             $aplicaciones = Aplicacion::where('app_situacion', 1);
             
             http_response_code(200);
@@ -305,6 +347,8 @@ class AsigPermisosController extends ActiveRecord
                 'data' => $aplicaciones
             ]);
         } catch (Exception $e) {
+            HistorialActividadesController::registrarError('/asigPermisos/aplicaciones', 'Error al consultar aplicaciones: ' . $e->getMessage(), 1);
+            
             http_response_code(500);
             echo json_encode([
                 'codigo' => 0,
@@ -330,6 +374,8 @@ class AsigPermisosController extends ActiveRecord
         }
         
         try {
+            HistorialActividadesController::registrarActividad('/asigPermisos/permisos', 'Consulta de permisos por aplicación ID: ' . $app_id, 1, ['app_id' => $app_id]);
+            
             $sql = "SELECT * FROM jjjc_permiso WHERE permiso_app_id = $app_id AND permiso_situacion = 1";
             $permisos = Permisos::fetchArray($sql);
             
@@ -340,6 +386,8 @@ class AsigPermisosController extends ActiveRecord
                 'data' => $permisos
             ]);
         } catch (Exception $e) {
+            HistorialActividadesController::registrarError('/asigPermisos/permisos', 'Error al consultar permisos: ' . $e->getMessage(), 1, ['app_id' => $app_id]);
+            
             http_response_code(500);
             echo json_encode([
                 'codigo' => 0,
