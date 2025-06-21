@@ -12,12 +12,14 @@ class UsuarioController extends ActiveRecord
 
     public static function renderizarPagina(Router $router)
     {
+        hasPermission(['ADMIN']);
         HistorialActividadesController::registrarActividad('/usuario', 'Acceso al módulo de usuarios del sistema', 1);
         $router->render('usuario/index', []);
     }
 
     public static function guardarAPI()
     {
+        hasPermissionApi(['ADMIN']);
         getHeadersApi();
     
         HistorialActividadesController::registrarActividad('/usuario/guardar', 'Intento de guardar nuevo usuario del sistema', 1, ['datos_enviados' => array_merge($_POST, ['archivo_subido' => isset($_FILES['usuario_fotografia']) ? $_FILES['usuario_fotografia']['name'] : 'No'])]);
@@ -105,7 +107,6 @@ class UsuarioController extends ActiveRecord
             exit;
         }
 
-        // Verificar si el correo ya existe
         $usuarioExistente = Usuario::fetchFirst("SELECT * FROM jjjc_usuario WHERE usuario_correo = '{$_POST['usuario_correo']}'");
         if ($usuarioExistente) {
             http_response_code(400);
@@ -116,7 +117,6 @@ class UsuarioController extends ActiveRecord
             exit;
         }
 
-        // Verificar si el DPI ya existe  
         $dpiExistente = Usuario::fetchFirst("SELECT * FROM jjjc_usuario WHERE usuario_dpi = '{$_POST['usuario_dpi']}'");
         if ($dpiExistente) {
             http_response_code(400);
@@ -127,7 +127,6 @@ class UsuarioController extends ActiveRecord
             exit;
         }
         
-        // Contraseña
         if (strlen($_POST['usuario_contra']) < 8) {
             http_response_code(400);
             echo json_encode([
@@ -137,7 +136,6 @@ class UsuarioController extends ActiveRecord
             exit;
         }
         
-        // Confirmar contraseña
         if ($_POST['usuario_contra'] !== $_POST['confirmar_contra']) {
             http_response_code(400);
             echo json_encode([
@@ -242,6 +240,7 @@ class UsuarioController extends ActiveRecord
     
     public static function buscarAPI()
     {
+        hasPermissionApi(['ADMIN']);
         getHeadersApi();
         
         try {
@@ -295,6 +294,7 @@ class UsuarioController extends ActiveRecord
     
     public static function mostrarImagen()
     {
+        hasPermissionApi(['ADMIN']);
         $dpi = $_GET['dpi'] ?? null;
         
         HistorialActividadesController::registrarActividad('/usuario/imagen', 'Consulta de imagen de usuario por DPI: ' . $dpi, 1, ['dpi_consultado' => $dpi]);

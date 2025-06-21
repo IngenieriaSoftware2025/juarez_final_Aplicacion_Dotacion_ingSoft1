@@ -12,12 +12,14 @@ class PrendasDotController extends ActiveRecord
 
     public static function renderizarPagina(Router $router)
     {
+        hasPermission(['ADMIN', 'GUARDALMACEN', 'USUARIO']);
         HistorialActividadesController::registrarActividad('/prendasDot', 'Acceso al módulo de prendas de dotación', 1);
         $router->render('prendasDot/index', []);
     }
 
     public static function guardarAPI()
     {
+        hasPermissionApi(['ADMIN', 'GUARDALMACEN']);
         getHeadersApi();
     
         HistorialActividadesController::registrarActividad('/prendasDot/guardar', 'Intento de guardar nueva prenda de dotación', 1, ['datos_enviados' => $_POST]);
@@ -91,6 +93,7 @@ class PrendasDotController extends ActiveRecord
     
     public static function buscarAPI()
     {
+        hasPermissionApi(['ADMIN', 'GUARDALMACEN', 'USUARIO']);
         getHeadersApi();
         
         try {
@@ -139,6 +142,7 @@ class PrendasDotController extends ActiveRecord
     
     public static function modificarAPI()
     {
+        hasPermissionApi(['ADMIN', 'GUARDALMACEN']);
         getHeadersApi();
         
         HistorialActividadesController::registrarActividad('/prendasDot/modificar', 'Intento de modificar prenda de dotación', 1, ['datos_enviados' => $_POST]);
@@ -204,6 +208,7 @@ class PrendasDotController extends ActiveRecord
     
     public static function eliminarAPI()
     {
+        hasPermissionApi(['ADMIN', 'GUARDALMACEN']);
         getHeadersApi();
         
         $id = $_GET['id'] ?? null;

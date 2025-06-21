@@ -12,15 +12,16 @@ class AplicacionController extends ActiveRecord
 
     public static function renderizarPagina(Router $router)
     {
+        hasPermission(['ADMIN']);
         HistorialActividadesController::registrarActividad('/aplicacionDot', 'Acceso al módulo de pedidos de aplicacion', 1);
         $router->render('aplicaciones/index', []);
     }
 
     public static function guardarAPI()
     {
+        hasPermissionApi(['ADMIN']);
         getHeadersApi();
         
-        // Sanitizar nombre largo
         $_POST['app_nombre_largo'] = ucwords(strtolower(trim(htmlspecialchars($_POST['app_nombre_largo']))));
         
         $cantidad_largo = strlen($_POST['app_nombre_largo']);
@@ -34,7 +35,6 @@ class AplicacionController extends ActiveRecord
             exit;
         }
         
-        // Sanitizar nombre mediano
         $_POST['app_nombre_mediano'] = ucwords(strtolower(trim(htmlspecialchars($_POST['app_nombre_mediano']))));
         
         $cantidad_mediano = strlen($_POST['app_nombre_mediano']);
@@ -48,7 +48,6 @@ class AplicacionController extends ActiveRecord
             exit;
         }
         
-        // Sanitizar nombre corto
         $_POST['app_nombre_corto'] = strtoupper(trim(htmlspecialchars($_POST['app_nombre_corto'])));
         
         $cantidad_corto = strlen($_POST['app_nombre_corto']);
@@ -62,7 +61,6 @@ class AplicacionController extends ActiveRecord
             exit;
         }
         
-        // Verificar si el nombre corto ya existe
         $appExistente = Aplicacion::where('app_nombre_corto', $_POST['app_nombre_corto']);
         if (!empty($appExistente)) {
             http_response_code(400);
@@ -97,10 +95,10 @@ class AplicacionController extends ActiveRecord
 
     public static function buscarAPI()
     {
+        hasPermissionApi(['ADMIN']);
         getHeadersApi();
         
         try {
-             // Usar consulta para la fecha
             $sql = "SELECT app_id, app_nombre_largo, app_nombre_mediano, app_nombre_corto, 
                            app_fecha_creacion, app_situacion 
                     FROM jjjc_aplicacion 
@@ -108,7 +106,6 @@ class AplicacionController extends ActiveRecord
             
             $aplicaciones = Aplicacion::fetchArray($sql);
             
-            // Formatear fechas
             if (!empty($aplicaciones)) {
                 foreach ($aplicaciones as &$aplicacion) {
                     if (!empty($aplicacion['app_fecha_creacion'])) {
@@ -144,6 +141,7 @@ class AplicacionController extends ActiveRecord
 
     public static function modificarAPI()
     {
+        hasPermissionApi(['ADMIN']);
         getHeadersApi();
         
         if (empty($_POST['app_id'])) {
@@ -203,6 +201,7 @@ class AplicacionController extends ActiveRecord
 
     public static function eliminarAPI()
     {
+        hasPermissionApi(['ADMIN']);
         getHeadersApi();
         
         $id = $_GET['id'] ?? null;
@@ -217,7 +216,6 @@ class AplicacionController extends ActiveRecord
         }
         
         try {
-            // Cambiar situación a 0  NO eliminar físicamente
             $sql = "UPDATE jjjc_aplicacion SET app_situacion = 0 WHERE app_id = $id AND app_situacion = 1";
             $resultado = Aplicacion::getDB()->exec($sql);
             

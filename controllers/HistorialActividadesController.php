@@ -13,6 +13,7 @@ class HistorialActividadesController extends ActiveRecord
 
     public static function renderizarPagina(Router $router)
     {
+        hasPermission(['ADMIN']);
         if (!isset($_SESSION['login']) || $_SESSION['login'] !== true) {
             header('Location: /juarez_final_Aplicacion_Dotacion_ingSoft1/login');
             exit;
@@ -134,8 +135,8 @@ class HistorialActividadesController extends ActiveRecord
 
     public static function buscarAPI()
     {
+        hasPermissionApi(['ADMIN']);
         try {
-            // Registrar la búsqueda
             $filtrosUsados = array_filter($_GET);
             self::registrarActividad(
                 '/historial/buscarAPI',
@@ -226,6 +227,7 @@ class HistorialActividadesController extends ActiveRecord
 
     public static function buscarUsuariosAPI()
     {
+        hasPermissionApi(['ADMIN']);
         try {
             $sql = "SELECT DISTINCT h.historial_usuario_id, u.usuario_nom1 || ' ' || u.usuario_ape1 as usuario_nombre 
                     FROM jjjc_historial_act h
@@ -247,7 +249,7 @@ class HistorialActividadesController extends ActiveRecord
             http_response_code(400);
             echo json_encode([
                 'codigo' => 0,
-                'mensaje' => 'Error al obtener los usuarios',
+                'mensaje' => 'Para visualizar el historial debe presionar el boton de busqueda',
                 'detalle' => $e->getMessage(),
             ]);
         }
@@ -255,6 +257,7 @@ class HistorialActividadesController extends ActiveRecord
 
     public static function buscarAplicacionesAPI()
     {
+        hasPermissionApi(['ADMIN']);
         try {
             $sql = "SELECT DISTINCT a.app_id, a.app_nombre_largo as app_nombre 
                     FROM jjjc_aplicacion a
@@ -285,6 +288,7 @@ class HistorialActividadesController extends ActiveRecord
 
     public static function buscarRutasAPI()
     {
+        hasPermissionApi(['ADMIN']);
         try {
             $aplicacionId = isset($_GET['aplicacion_id']) ? $_GET['aplicacion_id'] : null;
             

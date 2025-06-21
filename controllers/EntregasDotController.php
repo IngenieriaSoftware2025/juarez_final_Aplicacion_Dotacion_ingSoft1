@@ -15,12 +15,14 @@ class EntregasDotController extends ActiveRecord
 {
     public static function renderizarPagina(Router $router)
     {
+        hasPermission(['ADMIN', 'GUARDALMACEN']);
         HistorialActividadesController::registrarActividad('/entregasDot', 'Acceso al módulo de entregas de dotación', 1);
         $router->render('entregasDot/index', []);
     }
 
     public static function obtenerPersonalAPI()
     {
+        hasPermissionApi(['ADMIN', 'GUARDALMACEN']);
         getHeadersApi();
         
         try {
@@ -33,7 +35,6 @@ class EntregasDotController extends ActiveRecord
             
             $personal = PersonalDot::fetchArray($sql);
             
-            // Formatear nombres completos
             foreach ($personal as &$persona) {
                 $persona['nombre_completo'] = trim($persona['per_nom1'] . ' ' . $persona['per_nom2'] . ' ' . $persona['per_ape1'] . ' ' . $persona['per_ape2']);
             }
@@ -58,6 +59,7 @@ class EntregasDotController extends ActiveRecord
 
     public static function obtenerPedidosAPI()
     {
+        hasPermissionApi(['ADMIN', 'GUARDALMACEN']);
         getHeadersApi();
         
         $personalId = $_GET['personal_id'] ?? null;
@@ -106,6 +108,7 @@ class EntregasDotController extends ActiveRecord
 
     public static function obtenerInventarioAPI()
     {
+        hasPermissionApi(['ADMIN', 'GUARDALMACEN']);
         getHeadersApi();
         
         $prendaId = $_GET['prenda_id'] ?? null;
@@ -165,6 +168,7 @@ class EntregasDotController extends ActiveRecord
 
     public static function guardarAPI()
     {
+        hasPermissionApi(['ADMIN', 'GUARDALMACEN']);
         getHeadersApi();
     
         HistorialActividadesController::registrarActividad('/entregasDot/guardar', 'Intento de guardar nueva entrega de dotación', 1, ['datos_enviados' => $_POST]);
@@ -217,7 +221,6 @@ class EntregasDotController extends ActiveRecord
         $_POST['ent_observ'] = trim(htmlspecialchars($_POST['ent_observ']));
         
         try {
-            // Verificar stock disponible
             $sqlStock = "SELECT inv_cant_disp FROM jjjc_inv_dot WHERE inv_id = {$_POST['ent_inv_id']}";
             $inventario = InventarioDot::fetchFirst($sqlStock);
             
@@ -230,18 +233,15 @@ class EntregasDotController extends ActiveRecord
                 exit;
             }
 
-            // Crear la entrega
             $entrega = new EntregasDot($_POST);
             $resultado = $entrega->crear();
 
             if($resultado['resultado'] == 1){
-                // Actualizar stock del inventario
                 $sqlActualizar = "UPDATE jjjc_inv_dot SET 
                                   inv_cant_disp = inv_cant_disp - {$_POST['ent_cant_ent']}
                                   WHERE inv_id = {$_POST['ent_inv_id']}";
                 EntregasDot::getDB()->exec($sqlActualizar);
 
-                // Verificar si se completó el pedido
                 $sqlPedido = "SELECT ped_cant_sol FROM jjjc_ped_dot WHERE ped_id = {$_POST['ent_ped_id']}";
                 $pedido = PedidosDot::fetchFirst($sqlPedido);
                 
@@ -287,6 +287,7 @@ class EntregasDotController extends ActiveRecord
     
     public static function buscarAPI()
     {
+        hasPermissionApi(['ADMIN', 'GUARDALMACEN']);
         getHeadersApi();
         
         try {
@@ -312,7 +313,6 @@ class EntregasDotController extends ActiveRecord
             $entregas = EntregasDot::fetchArray($sql);
             
             if (!empty($entregas)) {
-                // Formatear fechas
                 foreach ($entregas as &$ent) {
                     if (!empty($ent['ent_fecha_ent'])) {
                         $ent['ent_fecha_ent'] = date('d/m/Y H:i', strtotime($ent['ent_fecha_ent']));
@@ -347,6 +347,7 @@ class EntregasDotController extends ActiveRecord
     
     public static function modificarAPI()
     {
+        hasPermissionApi(['ADMIN', 'GUARDALMACEN']);
         getHeadersApi();
         
         HistorialActividadesController::registrarActividad('/entregasDot/modificar', 'Intento de modificar entrega de dotación', 1, ['datos_enviados' => $_POST]);
@@ -403,7 +404,6 @@ class EntregasDotController extends ActiveRecord
             $resultado = EntregasDot::getDB()->exec($sql);
 
             if($resultado >= 0){
-                // Ajustar stock del inventario
                 $sqlAjustar = "UPDATE jjjc_inv_dot SET 
                                inv_cant_disp = inv_cant_disp - ($diferencia)
                                WHERE inv_id = {$entregaAnterior['ent_inv_id']}";
@@ -439,6 +439,7 @@ class EntregasDotController extends ActiveRecord
     
     public static function eliminarAPI()
     {
+        hasPermissionApi(['ADMIN', 'GUARDALMACEN']);
         getHeadersApi();
         
         $id = $_GET['id'] ?? null;
@@ -455,7 +456,6 @@ class EntregasDotController extends ActiveRecord
         }
         
         try {
-            // Obtener datos de la entrega para restaurar stock
             $sqlEntrega = "SELECT ent_cant_ent, ent_inv_id, ent_ped_id FROM jjjc_ent_dot WHERE ent_id = $id";
             $entrega = EntregasDot::fetchFirst($sqlEntrega);
             
@@ -472,13 +472,11 @@ class EntregasDotController extends ActiveRecord
             $resultado = EntregasDot::getDB()->exec($sql);
             
             if($resultado > 0){
-                // Restaurar stock al inventario
                 $sqlRestaurar = "UPDATE jjjc_inv_dot SET 
                                 inv_cant_disp = inv_cant_disp + {$entrega['ent_cant_ent']}
                                 WHERE inv_id = {$entrega['ent_inv_id']}";
                 InventarioDot::getDB()->exec($sqlRestaurar);
 
-                // Revisar estado del pedido
                 $sqlTotalEntregado = "SELECT SUM(ent_cant_ent) as total_entregado 
                                      FROM jjjc_ent_dot 
                                      WHERE ent_ped_id = {$entrega['ent_ped_id']} 
@@ -524,12 +522,12 @@ class EntregasDotController extends ActiveRecord
 
     public static function obtenerUsuariosAPI()
     {
+        hasPermissionApi(['ADMIN', 'GUARDALMACEN']);
         getHeadersApi();
         
         try {
             HistorialActividadesController::registrarActividad('/entregasDot/usuarios', 'Consulta de usuarios para entregas', 1);
             
-            // Usar la tabla de usuarios
             $sql = "SELECT usuario_id, usuario_nom1, usuario_nom2, usuario_ape1, usuario_ape2 
                     FROM jjjc_usuario 
                     WHERE usuario_situacion = 1
@@ -537,7 +535,6 @@ class EntregasDotController extends ActiveRecord
             
             $usuarios = Usuario::fetchArray($sql);
             
-            // Formatear nombres completos
             foreach ($usuarios as &$usuario) {
                 $usuario['nombre_completo'] = trim($usuario['usuario_nom1'] . ' ' . $usuario['usuario_nom2'] . ' ' . $usuario['usuario_ape1'] . ' ' . $usuario['usuario_ape2']);
             }

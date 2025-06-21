@@ -13,17 +13,18 @@ class PermisosController extends ActiveRecord
 
     public static function renderizarPagina(Router $router)
     {
+        hasPermission(['ADMIN']);
         HistorialActividadesController::registrarActividad('/permisos', 'Acceso al módulo de permisos del sistema', 1);
         $router->render('permisos/index', []);
     }
 
     public static function guardarAPI()
     {
+        hasPermissionApi(['ADMIN']);
         getHeadersApi();
         
         HistorialActividadesController::registrarActividad('/permisos/guardar', 'Intento de guardar nuevo permiso del sistema', 1, ['datos_enviados' => $_POST]);
         
-        // Validar aplicación
         if (empty($_POST['permiso_app_id'])) {
             http_response_code(400);
             echo json_encode([
@@ -33,7 +34,6 @@ class PermisosController extends ActiveRecord
             exit;
         }
         
-        // Sanitizar nombre del permiso
         $_POST['permiso_nombre'] = ucwords(strtolower(trim(htmlspecialchars($_POST['permiso_nombre']))));
         
         $cantidad_nombre = strlen($_POST['permiso_nombre']);
@@ -47,7 +47,6 @@ class PermisosController extends ActiveRecord
             exit;
         }
         
-        // Sanitizar clave del permiso
         $_POST['permiso_clave'] = strtoupper(trim(htmlspecialchars($_POST['permiso_clave'])));
         
         if (strlen($_POST['permiso_clave']) < 2) {
@@ -59,7 +58,6 @@ class PermisosController extends ActiveRecord
             exit;
         }
         
-        // Sanitizar descripción
         $_POST['permiso_desc'] = ucfirst(strtolower(trim(htmlspecialchars($_POST['permiso_desc']))));
         
         if (strlen($_POST['permiso_desc']) < 5) {
@@ -71,7 +69,6 @@ class PermisosController extends ActiveRecord
             exit;
         }
         
-        // Verificar si la clave ya existe para esa aplicación
         $permisoExistente = Permisos::fetchFirst("SELECT * FROM jjjc_permiso WHERE permiso_clave = '{$_POST['permiso_clave']}' AND permiso_app_id = {$_POST['permiso_app_id']}");
         if ($permisoExistente) {
             http_response_code(400);
@@ -119,6 +116,7 @@ class PermisosController extends ActiveRecord
 
     public static function buscarAPI()
     {
+        hasPermissionApi(['ADMIN']);
         getHeadersApi();
         
         try {
@@ -133,7 +131,6 @@ class PermisosController extends ActiveRecord
             
             $permisos = Permisos::fetchArray($sql);
             
-            // Formatear fechas
             if (!empty($permisos)) {
                 foreach ($permisos as &$permiso) {
                     if (!empty($permiso['permiso_fecha'])) {
@@ -171,6 +168,7 @@ class PermisosController extends ActiveRecord
 
     public static function modificarAPI()
     {
+        hasPermissionApi(['ADMIN']);
         getHeadersApi();
         
         HistorialActividadesController::registrarActividad('/permisos/modificar', 'Intento de modificar permiso del sistema', 1, ['datos_enviados' => $_POST]);
@@ -184,7 +182,6 @@ class PermisosController extends ActiveRecord
             exit;
         }
         
-        // Validar aplicación
         if (empty($_POST['permiso_app_id'])) {
             http_response_code(400);
             echo json_encode([
@@ -249,6 +246,7 @@ class PermisosController extends ActiveRecord
 
     public static function eliminarAPI()
     {
+        hasPermissionApi(['ADMIN']);
         getHeadersApi();
         
         $id = $_GET['id'] ?? null;
@@ -265,7 +263,6 @@ class PermisosController extends ActiveRecord
         }
         
         try {
-            // Cambiar situación a 0 - NO eliminar físicamente
             $sql = "UPDATE jjjc_permiso SET permiso_situacion = 0 WHERE permiso_id = $id AND permiso_situacion = 1";
             $resultado = Permisos::getDB()->exec($sql);
             
@@ -300,6 +297,7 @@ class PermisosController extends ActiveRecord
 
     public static function obtenerAplicacionesAPI()
     {
+        hasPermissionApi(['ADMIN']);
         getHeadersApi();
         
         try {

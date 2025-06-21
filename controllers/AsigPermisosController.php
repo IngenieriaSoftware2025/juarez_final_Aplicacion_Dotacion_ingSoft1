@@ -16,17 +16,18 @@ class AsigPermisosController extends ActiveRecord
 
     public static function renderizarPagina(Router $router)
     {
+        hasPermission(['ADMIN']);
         HistorialActividadesController::registrarActividad('/asigPermisos', 'Acceso al módulo de asignación de permisos', 1);
         $router->render('asigPermisos/index', []);
     }
 
     public static function guardarAPI()
     {
+        hasPermissionApi(['ADMIN']);
         getHeadersApi();
         
         HistorialActividadesController::registrarActividad('/asigPermisos/guardar', 'Intento de guardar nueva asignación de permisos', 1, ['datos_enviados' => $_POST]);
         
-        // Validar usuario
         if (empty($_POST['asignacion_usuario_id'])) {
             http_response_code(400);
             echo json_encode([
@@ -36,7 +37,6 @@ class AsigPermisosController extends ActiveRecord
             exit;
         }
         
-        // Validar aplicación
         if (empty($_POST['asignacion_app_id'])) {
             http_response_code(400);
             echo json_encode([
@@ -46,7 +46,6 @@ class AsigPermisosController extends ActiveRecord
             exit;
         }
         
-        // Validar permiso
         if (empty($_POST['asignacion_permiso_id'])) {
             http_response_code(400);
             echo json_encode([
@@ -56,7 +55,6 @@ class AsigPermisosController extends ActiveRecord
             exit;
         }
         
-        // Validar usuario que coloca el permiso
         if (empty($_POST['asignacion_usuario_asigno'])) {
             http_response_code(400);
             echo json_encode([
@@ -66,7 +64,6 @@ class AsigPermisosController extends ActiveRecord
             exit;
         }
         
-        // Sanitizar motivo
         $_POST['asignacion_motivo'] = ucfirst(strtolower(trim(htmlspecialchars($_POST['asignacion_motivo']))));
         
         if (strlen($_POST['asignacion_motivo']) < 5) {
@@ -78,7 +75,6 @@ class AsigPermisosController extends ActiveRecord
             exit;
         }
         
-        // Verificar si ya existe la asignación
         $asignacionExistente = AsigPermiso::fetchFirst("SELECT * FROM jjjc_asig_permisos WHERE asignacion_usuario_id = {$_POST['asignacion_usuario_id']} AND asignacion_app_id = {$_POST['asignacion_app_id']} AND asignacion_permiso_id = {$_POST['asignacion_permiso_id']} AND asignacion_situacion = 1");
         if ($asignacionExistente) {
             http_response_code(400);
@@ -126,6 +122,7 @@ class AsigPermisosController extends ActiveRecord
 
     public static function buscarAPI()
     {
+        hasPermissionApi(['ADMIN']);
         getHeadersApi();
         
         try {
@@ -176,6 +173,7 @@ class AsigPermisosController extends ActiveRecord
 
     public static function modificarAPI()
     {
+        hasPermissionApi(['ADMIN']);
         getHeadersApi();
         
         HistorialActividadesController::registrarActividad('/asigPermisos/modificar', 'Intento de modificar asignación de permisos', 1, ['datos_enviados' => $_POST]);
@@ -189,7 +187,6 @@ class AsigPermisosController extends ActiveRecord
             exit;
         }
         
-        // Validar campos obligatorios
         if (empty($_POST['asignacion_usuario_id']) || empty($_POST['asignacion_app_id']) || empty($_POST['asignacion_permiso_id']) || empty($_POST['asignacion_usuario_asigno'])) {
             http_response_code(400);
             echo json_encode([
@@ -199,7 +196,6 @@ class AsigPermisosController extends ActiveRecord
             exit;
         }
         
-        // Sanitizar motivo
         $_POST['asignacion_motivo'] = ucfirst(strtolower(trim(htmlspecialchars($_POST['asignacion_motivo']))));
         
         $asignacionExistente = AsigPermiso::fetchFirst("SELECT * FROM jjjc_asig_permisos WHERE asignacion_usuario_id = {$_POST['asignacion_usuario_id']} AND asignacion_app_id = {$_POST['asignacion_app_id']} AND asignacion_permiso_id = {$_POST['asignacion_permiso_id']} AND asignacion_id != {$_POST['asignacion_id']} AND asignacion_situacion = 1");
@@ -255,6 +251,7 @@ class AsigPermisosController extends ActiveRecord
 
     public static function eliminarAPI()
     {
+        hasPermissionApi(['ADMIN']);
         getHeadersApi();
         
         $id = $_GET['id'] ?? null;
@@ -271,7 +268,6 @@ class AsigPermisosController extends ActiveRecord
         }
         
         try {
-            // Cambiar situación a 0 -- NO eliminar físicamente
             $sql = "UPDATE jjjc_asig_permisos SET asignacion_situacion = 0 WHERE asignacion_id = $id AND asignacion_situacion = 1";
             $resultado = AsigPermiso::getDB()->exec($sql);
             
@@ -306,6 +302,7 @@ class AsigPermisosController extends ActiveRecord
 
     public static function obtenerUsuariosAPI()
     {
+        hasPermissionApi(['ADMIN']);
         getHeadersApi();
         
         try {
@@ -333,6 +330,7 @@ class AsigPermisosController extends ActiveRecord
 
     public static function obtenerAplicacionesAPI()
     {
+        hasPermissionApi(['ADMIN']);
         getHeadersApi();
         
         try {
@@ -360,6 +358,7 @@ class AsigPermisosController extends ActiveRecord
 
     public static function obtenerPermisosPorAppAPI()
     {
+        hasPermissionApi(['ADMIN']);
         getHeadersApi();
         
         $app_id = $_GET['app_id'] ?? null;

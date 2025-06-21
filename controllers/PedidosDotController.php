@@ -15,12 +15,14 @@ class PedidosDotController extends ActiveRecord
 
     public static function renderizarPagina(Router $router)
     {
+        hasPermission(['ADMIN', 'GUARDALMACEN']);
         HistorialActividadesController::registrarActividad('/pedidosDot', 'Acceso al módulo de pedidos de dotación', 1);
         $router->render('pedidosDot/index', []);
     }
 
     public static function obtenerPersonalAPI()
     {
+        hasPermissionApi(['ADMIN', 'GUARDALMACEN']);
         getHeadersApi();
         
         try {
@@ -33,7 +35,6 @@ class PedidosDotController extends ActiveRecord
             
             $personal = PersonalDot::fetchArray($sql);
             
-            // Formatear nombres completos
             foreach ($personal as &$persona) {
                 $persona['nombre_completo'] = trim($persona['per_nom1'] . ' ' . $persona['per_nom2'] . ' ' . $persona['per_ape1'] . ' ' . $persona['per_ape2']);
             }
@@ -58,6 +59,7 @@ class PedidosDotController extends ActiveRecord
 
     public static function obtenerPrendasAPI()
     {
+        hasPermissionApi(['ADMIN', 'GUARDALMACEN']);
         getHeadersApi();
         
         try {
@@ -90,6 +92,7 @@ class PedidosDotController extends ActiveRecord
 
     public static function obtenerTallasAPI()
     {
+        hasPermissionApi(['ADMIN', 'GUARDALMACEN']);
         getHeadersApi();
         
         $prendaId = $_GET['prenda_id'] ?? null;
@@ -133,6 +136,7 @@ class PedidosDotController extends ActiveRecord
 
     public static function guardarAPI()
     {
+        hasPermissionApi(['ADMIN', 'GUARDALMACEN']);
         getHeadersApi();
     
         HistorialActividadesController::registrarActividad('/pedidosDot/guardar', 'Intento de guardar nuevo pedido de dotación', 1, ['datos_enviados' => $_POST]);
@@ -210,6 +214,7 @@ class PedidosDotController extends ActiveRecord
     
     public static function buscarAPI()
     {
+        hasPermissionApi(['ADMIN', 'GUARDALMACEN']);
         getHeadersApi();
         
         try {
@@ -230,7 +235,6 @@ class PedidosDotController extends ActiveRecord
             $pedidos = PedidosDot::fetchArray($sql);
             
             if (!empty($pedidos)) {
-                // Formatear fechas
                 foreach ($pedidos as &$ped) {
                     if (!empty($ped['ped_fecha_sol'])) {
                         $ped['ped_fecha_sol'] = date('d/m/Y H:i', strtotime($ped['ped_fecha_sol']));
@@ -265,6 +269,7 @@ class PedidosDotController extends ActiveRecord
     
     public static function modificarAPI()
     {
+        hasPermissionApi(['ADMIN', 'GUARDALMACEN']);
         getHeadersApi();
         
         HistorialActividadesController::registrarActividad('/pedidosDot/modificar', 'Intento de modificar pedido de dotación', 1, ['datos_enviados' => $_POST]);
@@ -332,6 +337,7 @@ class PedidosDotController extends ActiveRecord
     
     public static function eliminarAPI()
     {
+        hasPermissionApi(['ADMIN', 'GUARDALMACEN']);
         getHeadersApi();
         
         $id = $_GET['id'] ?? null;

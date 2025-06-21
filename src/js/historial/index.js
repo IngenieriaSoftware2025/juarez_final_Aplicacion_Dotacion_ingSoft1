@@ -36,7 +36,7 @@ const cargarUsuarios = async () => {
             await Swal.fire({
                 position: "center",
                 icon: "info",
-                title: "Error",
+                title: "Aviso",
                 text: mensaje,
                 showConfirmButton: true,
             });

@@ -14,12 +14,14 @@ class InventarioDotController extends ActiveRecord
 
     public static function renderizarPagina(Router $router)
     {
+        hasPermission(['ADMIN', 'GUARDALMACEN']);
         HistorialActividadesController::registrarActividad('/inventarioDot', 'Acceso al módulo de inventario de dotación', 1);
         $router->render('inventarioDot/index', []);
     }
 
     public static function obtenerPrendasAPI()
     {
+        hasPermissionApi(['ADMIN', 'GUARDALMACEN']);
         getHeadersApi();
         
         try {
@@ -52,6 +54,7 @@ class InventarioDotController extends ActiveRecord
 
     public static function obtenerTallasAPI()
     {
+        hasPermissionApi(['ADMIN', 'GUARDALMACEN']);
         getHeadersApi();
         
         $prendaId = $_GET['prenda_id'] ?? null;
@@ -95,6 +98,7 @@ class InventarioDotController extends ActiveRecord
 
     public static function guardarAPI()
     {
+        hasPermissionApi(['ADMIN', 'GUARDALMACEN']);
         getHeadersApi();
     
         HistorialActividadesController::registrarActividad('/inventarioDot/guardar', 'Intento de guardar nuevo inventario de dotación', 1, ['datos_enviados' => $_POST]);
@@ -130,7 +134,6 @@ class InventarioDotController extends ActiveRecord
         $_POST['inv_observ'] = trim(htmlspecialchars($_POST['inv_observ']));
         $_POST['inv_cant_disp'] = $_POST['inv_cant_total']; 
 
-        // Verificar si ya existe en el inventario
         $inventarioExistente = InventarioDot::fetchFirst("SELECT * FROM jjjc_inv_dot WHERE inv_prenda_id = {$_POST['inv_prenda_id']} AND inv_talla_id = {$_POST['inv_talla_id']} AND inv_lote = '{$_POST['inv_lote']}'");
         if ($inventarioExistente) {
             http_response_code(400);
@@ -176,6 +179,7 @@ class InventarioDotController extends ActiveRecord
     
     public static function buscarAPI()
     {
+        hasPermissionApi(['ADMIN', 'GUARDALMACEN']);
         getHeadersApi();
         
         try {
@@ -193,7 +197,6 @@ class InventarioDotController extends ActiveRecord
             $inventarios = InventarioDot::fetchArray($sql);
             
             if (!empty($inventarios)) {
-                // Formatear fechas
                 foreach ($inventarios as &$inv) {
                     if (!empty($inv['inv_fecha_ing'])) {
                         $inv['inv_fecha_ing'] = date('d/m/Y H:i', strtotime($inv['inv_fecha_ing']));
@@ -228,6 +231,7 @@ class InventarioDotController extends ActiveRecord
     
     public static function modificarAPI()
     {
+        hasPermissionApi(['ADMIN', 'GUARDALMACEN']);
         getHeadersApi();
         
         HistorialActividadesController::registrarActividad('/inventarioDot/modificar', 'Intento de modificar inventario de dotación', 1, ['datos_enviados' => $_POST]);
@@ -296,6 +300,7 @@ class InventarioDotController extends ActiveRecord
     
     public static function eliminarAPI()
     {
+        hasPermissionApi(['ADMIN', 'GUARDALMACEN']);
         getHeadersApi();
         
         $id = $_GET['id'] ?? null;

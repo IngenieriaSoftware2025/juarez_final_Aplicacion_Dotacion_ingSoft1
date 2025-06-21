@@ -10,14 +10,15 @@ class EstadisticasDotController extends ActiveRecord
 {
     public static function renderizarPagina(Router $router)
     {
+        hasPermission(['ADMIN']);
         HistorialActividadesController::registrarActividad('/estadisticas', 'Acceso al módulo de estadísticas de dotación', 1);
         $router->render('estadisticas/index', []);
     }
 
     public static function buscarAPI()
     {
-        header('Content-Type: application/json');
-        header('Access-Control-Allow-Origin: *');
+        hasPermissionApi(['ADMIN']);
+        getHeadersApi();
         
         try {
             HistorialActividadesController::registrarActividad('/estadisticas/buscar', 'Consulta de estadísticas de dotación', 1);
@@ -83,6 +84,74 @@ class EstadisticasDotController extends ActiveRecord
             
         } catch (Exception $error) {
             HistorialActividadesController::registrarError('/estadisticas/buscar', 'Error al generar estadísticas: ' . $error->getMessage(), 1);
+            
+            echo json_encode([
+                'exito' => false,
+                'mensaje' => 'Error: ' . $error->getMessage()
+            ]);
+        }
+        exit;
+    }
+
+    public static function buscarActividadesAPI()
+    {
+        hasPermissionApi(['ADMIN']);
+        getHeadersApi();
+        
+        try {
+            HistorialActividadesController::registrarActividad('/estadisticas/actividades', 'Consulta de estadísticas de actividades de usuarios', 1);
+
+            $consultaEstados = "SELECT 
+                                 CASE 
+                                     WHEN historial_status = 1 THEN 'Exitosas'
+                                     ELSE 'Con Errores'
+                                 END as estado,
+                                 COUNT(*) as cantidad
+                               FROM jjjc_historial_act 
+                               WHERE historial_situacion = 1
+                               GROUP BY historial_status";
+            
+            $datosEstados = self::fetchArray($consultaEstados);
+
+            $consultaUsuarios = "SELECT 
+                                  u.usuario_nom1 || ' ' || u.usuario_ape1 as nombre_usuario,
+                                  COUNT(h.historial_id) as total_actividades
+                                FROM jjjc_historial_act h
+                                INNER JOIN jjjc_usuario u ON h.historial_usuario_id = u.usuario_id
+                                WHERE h.historial_situacion = 1
+                                GROUP BY u.usuario_id, u.usuario_nom1, u.usuario_ape1
+                                ORDER BY total_actividades DESC
+                                LIMIT 5";
+            
+            $datosUsuarios = self::fetchArray($consultaUsuarios);
+
+            $consultaApps = "SELECT 
+                              a.app_nombre_largo as aplicacion,
+                              COUNT(h.historial_id) as total_actividades
+                            FROM jjjc_historial_act h
+                            INNER JOIN jjjc_rutas r ON h.historial_ruta = r.ruta_id
+                            INNER JOIN jjjc_aplicacion a ON r.ruta_app_id = a.app_id
+                            WHERE h.historial_situacion = 1
+                            GROUP BY a.app_nombre_largo
+                            ORDER BY total_actividades DESC";
+            
+            $datosApps = self::fetchArray($consultaApps);
+
+            echo json_encode([
+                'exito' => true,
+                'mensaje' => 'Estadísticas de actividades obtenidas correctamente',
+                'estados' => $datosEstados,
+                'usuarios' => $datosUsuarios,
+                'aplicaciones' => $datosApps,
+                'totales_actividades' => [
+                    'total_actividades' => array_sum(array_column($datosEstados, 'cantidad')),
+                    'total_usuarios_activos' => count($datosUsuarios),
+                    'total_apps_usadas' => count($datosApps)
+                ]
+            ]);
+            
+        } catch (Exception $error) {
+            HistorialActividadesController::registrarError('/estadisticas/actividades', 'Error al obtener estadísticas de actividades: ' . $error->getMessage(), 1);
             
             echo json_encode([
                 'exito' => false,

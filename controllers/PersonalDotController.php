@@ -12,12 +12,14 @@ class PersonalDotController extends ActiveRecord
 
     public static function renderizarPagina(Router $router)
     {
+        hasPermission(['ADMIN', 'GUARDALMACEN']);
         HistorialActividadesController::registrarActividad('/personalDot', 'Acceso al módulo de personal de dotación', 1);
         $router->render('personalDot/index', []);
     }
 
     public static function guardarAPI()
     {
+        hasPermissionApi(['ADMIN', 'GUARDALMACEN']);
         getHeadersApi();
     
         HistorialActividadesController::registrarActividad('/personalDot/guardar', 'Intento de guardar nuevo personal de dotación', 1, ['datos_enviados' => $_POST]);
@@ -211,6 +213,7 @@ class PersonalDotController extends ActiveRecord
     
     public static function buscarAPI()
     {
+        hasPermissionApi(['ADMIN', 'GUARDALMACEN']);
         getHeadersApi();
         
         try {
@@ -261,6 +264,7 @@ class PersonalDotController extends ActiveRecord
     
     public static function modificarAPI()
     {
+        hasPermissionApi(['ADMIN', 'GUARDALMACEN']);
         getHeadersApi();
         
         HistorialActividadesController::registrarActividad('/personalDot/modificar', 'Intento de modificar personal de dotación', 1, ['datos_enviados' => $_POST]);
@@ -330,6 +334,7 @@ class PersonalDotController extends ActiveRecord
     
     public static function eliminarAPI()
     {
+        hasPermissionApi(['ADMIN', 'GUARDALMACEN']);
         getHeadersApi();
         
         $id = $_GET['id'] ?? null;

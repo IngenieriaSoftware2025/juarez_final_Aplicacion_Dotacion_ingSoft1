@@ -105,6 +105,7 @@ $router->get('/asigPermisos/permisos', [AsigPermisosController::class,'obtenerPe
 // RUTAS PARA ESTADÍSTICAS
 $router->get('/estadisticas', [EstadisticasDotController::class, 'renderizarPagina']);
 $router->get('/estadisticas/buscar', [EstadisticasDotController::class, 'buscarAPI']);
+$router->get('/estadisticas/buscarActividades', [EstadisticasDotController::class,'buscarActividadesAPI']);
 
 // RUTAS PARA APLICACIONES
 $router->get('/aplicaciones', [AplicacionController::class,'renderizarPagina']);

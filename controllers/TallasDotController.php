@@ -13,12 +13,14 @@ class TallasDotController extends ActiveRecord
 
     public static function renderizarPagina(Router $router)
     {
+        hasPermission(['ADMIN', 'GUARDALMACEN', 'USUARIO']);
         HistorialActividadesController::registrarActividad('/tallasDot', 'Acceso al módulo de tallas de dotación', 1);
         $router->render('tallasDot/index', []);
     }
 
     public static function obtenerPrendasAPI()
     {
+        hasPermissionApi(['ADMIN', 'GUARDALMACEN', 'USUARIO']);
         getHeadersApi();
         
         try {
@@ -51,6 +53,7 @@ class TallasDotController extends ActiveRecord
 
     public static function guardarAPI()
     {
+        hasPermissionApi(['ADMIN', 'GUARDALMACEN']);
         getHeadersApi();
     
         HistorialActividadesController::registrarActividad('/tallasDot/guardar', 'Intento de guardar nueva talla de dotación', 1, ['datos_enviados' => $_POST]);
@@ -121,6 +124,7 @@ class TallasDotController extends ActiveRecord
     
     public static function buscarAPI()
     {
+        hasPermissionApi(['ADMIN', 'GUARDALMACEN', 'USUARIO']);
         getHeadersApi();
         
         try {
@@ -164,6 +168,7 @@ class TallasDotController extends ActiveRecord
     
     public static function modificarAPI()
     {
+        hasPermissionApi(['ADMIN', 'GUARDALMACEN']);
         getHeadersApi();
         
         HistorialActividadesController::registrarActividad('/tallasDot/modificar', 'Intento de modificar talla de dotación', 1, ['datos_enviados' => $_POST]);
@@ -230,6 +235,7 @@ class TallasDotController extends ActiveRecord
     
     public static function eliminarAPI()
     {
+        hasPermissionApi(['ADMIN', 'GUARDALMACEN']);
         getHeadersApi();
         
         $id = $_GET['id'] ?? null;
